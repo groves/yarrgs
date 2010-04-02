@@ -18,7 +18,7 @@ public class ArgParser
         Field unparsed = null;
         for (Field f : parseType.getFields()) {
             Unparsed un = f.getAnnotation(Unparsed.class);
-            if (!Modifier.isPublic(f.getModifiers()) || Modifier.isStatic(f.getModifiers())) {
+            if (Modifier.isStatic(f.getModifiers())) {
                 continue;
             } else if (f.getType().equals(Boolean.TYPE)) {
                 fillInArguments(_flags, f);
