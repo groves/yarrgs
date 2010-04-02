@@ -37,4 +37,10 @@ public class TestArgParser
             Yarrgs.parse(OneString.class, new String[] { "--injury", "pegleg" }).injury);
 
     }
+
+    @Test
+    public void parsePositional ()
+    {
+        assertEquals("hook", Yarrgs.parse(OnePositional.class, new String[] { "hook" }).injury);
+    }
 }
