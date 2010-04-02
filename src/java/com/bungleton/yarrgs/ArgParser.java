@@ -13,6 +13,8 @@ public class ArgParser
     public ArgParser (Object parseDestination)
     {
         _destination = parseDestination;
+        StringBuilder usage = new StringBuilder("Usage: ");
+        usage.append(_destination.getClass().getSimpleName()).append(" [");
         Map<Integer, Field> positionals = new HashMap<Integer, Field>();
         Class<?> parseType = parseDestination.getClass();
         Field unparsed = null;
@@ -21,7 +23,8 @@ public class ArgParser
             if (Modifier.isStatic(f.getModifiers())) {
                 continue;
             } else if (f.getType().equals(Boolean.TYPE)) {
-                fillInArguments(_flags, f);
+                fillInArguments(_flags, f, usage);
+                usage.append('|');
             } else if (f.getType().equals(String.class)) {
                 Positional pos = f.getAnnotation(Positional.class);
                 YarrgConfigurationException.unless(un == null,
@@ -32,7 +35,8 @@ public class ArgParser
                         "Attempted to assign '" + f + "' to the same position as '" +
                         existent + "'");
                 } else {
-                    fillInArguments(_args, f);
+                    fillInArguments(_args, f, usage);
+                    usage.append(' ').append(f.getName().toUpperCase()).append('|');
                 }
             } else if (un != null) {
                 YarrgConfigurationException.unless(f.getType().equals(List.class),
@@ -42,7 +46,11 @@ public class ArgParser
                 throw new YarrgConfigurationException("Field '" + f + "' with unknown type");
             }
         }
-        _unparsed = unparsed;
+        usage.setLength(usage.length() - 1);
+        if (!_flags.isEmpty() || !_args.isEmpty()) {
+            usage.append(']');
+        }
+
         Field firstOptionalPositional = null;
         for (int ii = 0; ii < positionals.size(); ii++) {
             YarrgConfigurationException.unless(positionals.containsKey(ii + 1),
@@ -57,15 +65,32 @@ public class ArgParser
                 firstOptionalPositional = f;
             }
             _positional.add(f);
+            usage.append(' ');
+            if (pos.optional()) {
+                usage.append('[');
+            }
+            usage.append(f.getName());
+            if (pos.optional()) {
+                usage.append(']');
+            }
         }
+
+        _unparsed = unparsed;
+        if (_unparsed != null) {
+            usage.append(" [").append(_unparsed.getName()).append("...]");
+        }
+        _basicUsage = usage.toString();
     }
 
     public void parse (String[] args)
+        throws YarrgParseException
     {
         int positionalsIdx = 0;
         List<String> unmatched = new ArrayList<String>();
         for (int ii = 0; ii < args.length; ii++) {
-            if (_flags.containsKey(args[ii])) {
+            if (args[ii].equals("-h") || args[ii].equals("--help")) {
+                throw new YarrgHelpException(getUsage());
+            } else if (_flags.containsKey(args[ii])) {
                 setField(_flags.get(args[ii]), true);
             } else if (_args.containsKey(args[ii])) {
                 setField(_args.get(args[ii]), args[++ii]);
@@ -79,8 +104,20 @@ public class ArgParser
         if (_unparsed != null) {
             setField(_unparsed, unmatched);
         } else if (!unmatched.isEmpty()) {
-            throw new RuntimeException(unmatched + " were given without a corresponding option");
+            throw new YarrgParseException(unmatched + " were given without a corresponding option");
         }
+    }
+
+    protected String getUsage ()
+    {
+        StringBuilder usage = new StringBuilder(getBasicUsage());
+
+        return usage.toString();
+    }
+
+    protected String getBasicUsage ()
+    {
+        return _basicUsage;
     }
 
     protected void setField (Field f, Object value)
@@ -94,12 +131,14 @@ public class ArgParser
         }
     }
 
-    protected void fillInArguments (Map<String, Field> argHolder, Field f)
+    protected void fillInArguments (Map<String, Field> argHolder, Field f, StringBuilder usage)
     {
         argHolder.put("-" + f.getName().substring(0, 1), f);
         argHolder.put("--" + f.getName(), f);
+        usage.append("-" + f.getName().substring(0, 1));
     }
 
+    protected final String _basicUsage;
     protected final Object _destination;
     protected final Map<String, Field> _flags = new HashMap<String, Field>();
     protected final Map<String, Field> _args = new HashMap<String, Field>();
