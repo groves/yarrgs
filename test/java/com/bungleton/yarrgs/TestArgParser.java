@@ -17,25 +17,24 @@ public class TestArgParser
     @Test
     public void parseNoArgs ()
     {
-        assertNotNull(ArgParser.parse(EmptyArgs.class, new String[0]));
+        assertNotNull(Yarrgs.parse(EmptyArgs.class, new String[0]));
     }
 
     @Test
     public void parseOneFlag ()
     {
-        assertFalse(ArgParser.parse(OneFlag.class, new String[0]).verbose);
-        assertTrue(ArgParser.parse(OneFlag.class, new String[] { "-v" }).verbose);
-        assertTrue(ArgParser.parse(OneFlag.class, new String[] { "--verbose" }).verbose);
+        assertFalse(Yarrgs.parse(OneFlag.class, new String[0]).verbose);
+        assertTrue(Yarrgs.parse(OneFlag.class, new String[] { "-v" }).verbose);
+        assertTrue(Yarrgs.parse(OneFlag.class, new String[] { "--verbose" }).verbose);
     }
 
     @Test
     public void parseOneString ()
     {
-        assertNull(ArgParser.parse(OneString.class, new String[0]).injury);
-        assertEquals("hook",
-            ArgParser.parse(OneString.class, new String[] { "-i", "hook" }).injury);
+        assertNull(Yarrgs.parse(OneString.class, new String[0]).injury);
+        assertEquals("hook", Yarrgs.parse(OneString.class, new String[] { "-i", "hook" }).injury);
         assertEquals("pegleg",
-            ArgParser.parse(OneString.class, new String[] { "--injury", "pegleg" }).injury);
+            Yarrgs.parse(OneString.class, new String[] { "--injury", "pegleg" }).injury);
 
     }
 }
