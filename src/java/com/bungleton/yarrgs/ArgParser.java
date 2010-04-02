@@ -35,12 +35,23 @@ public class ArgParser
                 throw new RuntimeException("Field '" + f + "' with unknown type");
             }
         }
+        Field firstOptionalPositional = null;
         for (int ii = 0; ii < positionals.size(); ii++) {
             if (!positionals.containsKey(ii + 1)) {
                 throw new RuntimeException("There were positionals past " + (ii + 1)
                     + ", but none for it");
             }
-            _positional.add(positionals.get(ii + 1));
+            Field f = positionals.get(ii + 1);
+            Positional pos = f.getAnnotation(Positional.class);
+            if (!pos.optional() && firstOptionalPositional != null) {
+                throw new RuntimeException("Non-optional positional argument '" + f
+                    + "' can't come after optional positional argument '"
+                    + firstOptionalPositional + "'");
+            }
+            if (pos.optional() && firstOptionalPositional == null) {
+                firstOptionalPositional = f;
+            }
+            _positional.add(f);
         }
     }
 

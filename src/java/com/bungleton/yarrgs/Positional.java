@@ -9,4 +9,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Positional {
     int position() default 1;
+
+    boolean optional() default false;
 }

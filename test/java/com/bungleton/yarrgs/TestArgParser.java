@@ -43,4 +43,18 @@ public class TestArgParser
     {
         assertEquals("hook", Yarrgs.parse(OnePositional.class, new String[] { "hook" }).injury);
     }
+
+    @Test
+    public void parseOptionalPositonal()
+    {
+        OneRequiredPositionalOneOptionalPositional result =
+            Yarrgs.parse(OneRequiredPositionalOneOptionalPositional.class,
+                new String[] { "eyepatch" });
+        assertEquals(result.injury, "eyepatch");
+        assertEquals(result.drink, "grog");
+        result = Yarrgs.parse(OneRequiredPositionalOneOptionalPositional.class,
+            new String[] { "pegleg", "rum" });
+        assertEquals(result.injury, "pegleg");
+        assertEquals(result.drink, "rum");
+    }
 }
