@@ -125,10 +125,9 @@ public class ArgParser
     {
         try {
             f.set(_destination, value);
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new YarrgConfigurationException("Expected to be able to set '" + f + "' to "
+                + value, e);
         }
     }
 
