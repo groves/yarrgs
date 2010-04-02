@@ -80,8 +80,8 @@ public class ArgParser
         if (_unparsed != null) {
             basic.append(" [").append(_unparsed.getName()).append("...]");
         }
-        _usage = basic.toString();
-        _help = _usage + "\n" + detailed;
+        _usage = basic.append('\n').toString();
+        _help = _usage + detailed;
     }
 
     public void parse (String[] args)
@@ -106,7 +106,7 @@ public class ArgParser
         if (_unparsed != null) {
             setField(_unparsed, unmatched);
         } else if (!unmatched.isEmpty()) {
-            throw new YarrgParseException(_usage + "\n" + unmatched
+            throw new YarrgParseException(getUsage() + unmatched
                 + " were given without a corresponding option");
         }
     }
