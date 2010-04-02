@@ -24,45 +24,35 @@ public class ArgParser
                 fillInArguments(_flags, f);
             } else if (f.getType().equals(String.class)) {
                 Positional pos = f.getAnnotation(Positional.class);
-                if (un != null) {
-                    throw new RuntimeException("'" + f + "' is @Unparsed but not a list");
-                }
+                YarrgConfigurationException.unless(un == null,
+                    "'" + f + "' is @Unparsed but not a list");
                 if (pos != null) {
                     Field existent = positionals.put(pos.position(), f);
-                    if (existent != null) {
-                        throw new RuntimeException("Attempted to assign '" + f
-                            + "' to the same position as '" + existent + "'");
-                    }
+                    YarrgConfigurationException.unless(existent == null,
+                        "Attempted to assign '" + f + "' to the same position as '" +
+                        existent + "'");
                 } else {
                     fillInArguments(_args, f);
                 }
             } else if (un != null) {
-                if (!f.getType().equals(List.class)) {
-                    throw new RuntimeException("'" + f + "' is @Unparsed but not a list");
-                }
-                if (unparsed != null) {
-                    throw new RuntimeException("'" + f + "' and '" + unparsed
-                        + "' both have @Unparsed");
-                }
+                YarrgConfigurationException.unless(f.getType().equals(List.class),
+                    "'" + f + "' is @Unparsed but not a list");
                 unparsed = f;
             } else {
-                throw new RuntimeException("Field '" + f + "' with unknown type");
+                throw new YarrgConfigurationException("Field '" + f + "' with unknown type");
             }
         }
         _unparsed = unparsed;
         Field firstOptionalPositional = null;
         for (int ii = 0; ii < positionals.size(); ii++) {
-            if (!positionals.containsKey(ii + 1)) {
-                throw new RuntimeException("There were positionals past " + (ii + 1)
-                    + ", but none for it");
-            }
+            YarrgConfigurationException.unless(positionals.containsKey(ii + 1),
+                "There were positionals past " + (ii + 1) + ", but none for it");
             Field f = positionals.get(ii + 1);
             Positional pos = f.getAnnotation(Positional.class);
-            if (!pos.optional() && firstOptionalPositional != null) {
-                throw new RuntimeException("Non-optional positional argument '" + f
-                    + "' can't come after optional positional argument '"
-                    + firstOptionalPositional + "'");
-            }
+            YarrgConfigurationException.unless(pos.optional() || firstOptionalPositional == null,
+                "Non-optional positional argument '" + f
+                + "' can't come after optional positional argument '"+ firstOptionalPositional
+                + "'");
             if (pos.optional() && firstOptionalPositional == null) {
                 firstOptionalPositional = f;
             }
