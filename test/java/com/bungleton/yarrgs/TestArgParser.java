@@ -57,4 +57,14 @@ public class TestArgParser
         assertEquals(result.injury, "pegleg");
         assertEquals(result.drink, "rum");
     }
+
+    @Test
+    public void collectUnparsed ()
+    {
+        assertTrue(Yarrgs.parse(AllUnparsed.class, new String[0]).extras.isEmpty());
+        AllUnparsed unparsed = Yarrgs.parse(AllUnparsed.class, new String[] {"shiver", "timbers"});
+        assertEquals(2, unparsed.extras.size());
+        assertEquals("shiver", unparsed.extras.get(0));
+        assertEquals("timbers", unparsed.extras.get(1));
+    }
 }
