@@ -2,6 +2,7 @@ package com.bungleton.yarrgs;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -67,8 +68,8 @@ public class TestArgParser
     public void collectUnparsed ()
         throws YarrgParseException
     {
-        assertTrue(Yarrgs.parse(AllUnparsed.class, new String[0]).extras.isEmpty());
-        AllUnparsed unparsed = Yarrgs.parse(AllUnparsed.class, new String[] {"shiver", "timbers"});
+        assertTrue(Yarrgs.parse(AllUnmatched.class, new String[0]).extras.isEmpty());
+        AllUnmatched unparsed = Yarrgs.parse(AllUnmatched.class, new String[] {"shiver", "timbers"});
         assertEquals(2, unparsed.extras.size());
         assertEquals("shiver", unparsed.extras.get(0));
         assertEquals("timbers", unparsed.extras.get(1));
@@ -116,7 +117,7 @@ public class TestArgParser
     public void parseEnum ()
         throws YarrgParseException
     {
-        assertEquals(OneEnum.Injury.eyepatch,
+        assertEquals(Injury.eyepatch,
             Yarrgs.parse(OneEnum.class, new String[] { "-i", "eyepatch" }).injury);
         try {
             Yarrgs.parse(OneEnum.class, new String[] { "-i", "hoooook" });
@@ -124,5 +125,16 @@ public class TestArgParser
         } catch (YarrgParseException ex) {
             assertEquals("Expecting one of pegleg|hook|eyepatch, not 'hoooook'", ex.getMessage());
         }
+    }
+
+    @Test
+    public void parseEnumUnmatched ()
+        throws YarrgParseException
+    {
+        List<Injury> injuries =
+            Yarrgs.parse(EnumUnmatched.class, new String[] { "eyepatch", "hook" }).injuries;
+        assertEquals(2, injuries.size());
+        assertEquals(Injury.eyepatch, injuries.get(0));
+        assertEquals(Injury.hook, injuries.get(1));
     }
 }

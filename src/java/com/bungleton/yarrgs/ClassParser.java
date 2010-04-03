@@ -1,19 +1,9 @@
 package com.bungleton.yarrgs;
 
-import java.lang.reflect.Field;
-
-public abstract class ClassParser<T>
-    implements Parser<T>
+public interface ClassParser<T>
+    extends Parser<T>
 {
-    public ClassParser (Class<T> klass)
-    {
-        _class = klass;
-    }
+    boolean handles (Class<?> klass);
 
-    public boolean handles (Field f)
-    {
-        return f.getType().equals(_class);
-    }
-
-    protected final Class<T> _class;
+    T parse(String arg, Class<?> klass);
 }

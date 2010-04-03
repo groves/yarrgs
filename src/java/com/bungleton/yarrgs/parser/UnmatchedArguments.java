@@ -2,11 +2,19 @@ package com.bungleton.yarrgs.parser;
 
 import java.lang.reflect.Field;
 
+import com.bungleton.yarrgs.ClassParser;
+
 public class UnmatchedArguments extends Argument
 {
-    public UnmatchedArguments (Field field)
+    public final ClassParser<?> parser;
+
+    public final Class<?> parameterType;
+
+    public UnmatchedArguments (Field field, ClassParser<?> parser, Class<?> parameterType)
     {
         super(field);
+        this.parser = parser;
+        this.parameterType = parameterType;
     }
 
     @Override

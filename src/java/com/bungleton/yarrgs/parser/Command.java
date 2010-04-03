@@ -2,12 +2,14 @@ package com.bungleton.yarrgs.parser;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.bungleton.yarrgs.ClassParser;
 import com.bungleton.yarrgs.Parser;
 import com.bungleton.yarrgs.Positional;
 import com.bungleton.yarrgs.Unmatched;
@@ -34,7 +36,7 @@ public class Command
                 YarrgConfigurationException.unless(pos == null, "'" + f
                     + "' has @Unmatched and @Positional");
                 YarrgConfigurationException.unless(f.getType().equals(List.class),
-                    "'" + f + "' is @Unmatched but not a list");
+                    "'" + f + "' is @Unmatched but not a List");
                 YarrgConfigurationException.unless(unmatchedField == null,
                     "'" + f + "' and '" + unmatchedField + "' both have @Unmatched");
                 unmatchedField = f;
@@ -78,7 +80,24 @@ public class Command
             _positionals.add(p);
         }
 
-        _unmatched = unmatchedField == null ? null : new UnmatchedArguments(unmatchedField);
+        if (unmatchedField == null) {
+            _unmatched = null;
+            return;
+        }
+        YarrgConfigurationException.unless(unmatchedField.getGenericType() instanceof ParameterizedType,
+            "'" + unmatchedField + "' must specify its type parameter");
+        Class<?> unmatchedComponentType =
+            (Class<?>)((ParameterizedType)unmatchedField.getGenericType()).getActualTypeArguments()[0];
+        for (Parser<?> potential : parsers) {
+            if (potential instanceof ClassParser<?> &&
+                    ((ClassParser<?>)potential).handles(unmatchedComponentType)) {
+                _unmatched = new UnmatchedArguments(unmatchedField, (ClassParser<?>)potential,
+                    unmatchedComponentType);
+                return;
+            }
+        }
+        throw new YarrgConfigurationException("No ClassParser for type in @Unmatched: "
+            + unmatchedField);
     }
 
     protected void addOption (OptionArgument parser)
@@ -111,7 +130,15 @@ public class Command
             }
         }
         if (_unmatched != null) {
-            setField(_unmatched.field, unmatchedArgs);
+            List<Object> parsed = new ArrayList<Object>(unmatchedArgs.size());
+            for (String unparsed : unmatchedArgs) {
+                try {
+                    parsed.add(_unmatched.parser.parse(unparsed, _unmatched.parameterType));
+                } catch (RuntimeException e) {
+                    throw new YarrgParseException(getUsage(), e.getMessage(), e);
+                }
+            }
+            setField(_unmatched.field, parsed);
         } else if (!unmatchedArgs.isEmpty()) {
             throw new YarrgParseException(getUsage(),
                 unmatchedArgs + " were given without a corresponding option");

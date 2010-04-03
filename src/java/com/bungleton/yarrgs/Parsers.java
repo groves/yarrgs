@@ -1,7 +1,5 @@
 package com.bungleton.yarrgs;
 
-import java.lang.reflect.Field;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -12,54 +10,54 @@ import java.text.SimpleDateFormat;
 
 public class Parsers
 {
-    public static final Parser<Integer> INT = new ClassParser<Integer>(Integer.TYPE) {
-        @Override public Integer parse (String arg, Field f) {
+    public static final Parser<Integer> INT = new SpecificClassParser<Integer>(Integer.TYPE) {
+        @Override public Integer parse (String arg, Class<?> f) {
             return Integer.parseInt(arg);
         }
     };
 
-    public static final Parser<Byte> BYTE = new ClassParser<Byte>(Byte.TYPE) {
-        @Override public Byte parse (String arg, Field f) {
+    public static final Parser<Byte> BYTE = new SpecificClassParser<Byte>(Byte.TYPE) {
+        @Override public Byte parse (String arg, Class<?> f) {
             return Byte.parseByte(arg);
         }
     };
 
-    public static final Parser<String> STRING = new ClassParser<String>(String.class) {
-        @Override public String parse (String arg, Field f) {
+    public static final Parser<String> STRING = new SpecificClassParser<String>(String.class) {
+        @Override public String parse (String arg, Class<?> f) {
             return arg;
         }
     };
 
-    public static final Parser<Object> ENUM = new Parser<Object>() {
-        @Override public boolean handles (Field f) {
-            return f.getType().isEnum();
+    public static final Parser<Date> DATE = new SpecificClassParser<Date>(Date.class) {
+        @Override public Date parse (String arg, Class<?> f) {
+            try {
+                return new SimpleDateFormat("yyyy-MM-dd").parse(arg);
+            } catch (ParseException e) {
+                throw new RuntimeException("'" + arg + "' doesn't match yyyy-MM-dd", e);
+            }
+        }
+    };
+
+    public static final Parser<Object> ENUM = new BasicClassParser<Object>() {
+        @Override public boolean handles (Class<?> klass) {
+            return klass.isEnum();
         }
 
-        @Override public Object parse (String arg, Field f) {
+        @Override public Object parse (String arg, Class<?> klass) {
             @SuppressWarnings("unchecked")
-            Class<? extends Enum> enumType = (Class<? extends Enum>)f.getType();
+            Class<? extends Enum> enumType = (Class<? extends Enum>)klass;
             try {
                 @SuppressWarnings("unchecked")
                 Object val = Enum.valueOf(enumType, arg);
                 return val;
             } catch (IllegalArgumentException ex) {
                 StringBuilder error = new StringBuilder("Expecting one of ");
-                for (Object option : f.getType().getEnumConstants()) {
+                for (Object option : klass.getEnumConstants()) {
                     error.append(((Enum<?>)option).name()).append('|');
                 }
                 error.setLength(error.length() - 1);
                 error.append(", not '" + arg + "'");
                 throw new IllegalArgumentException(error.toString(), ex);
-            }
-        }
-    };
-
-    public static final Parser<Date> DATE = new ClassParser<Date>(Date.class) {
-        @Override public Date parse (String arg, Field f) {
-            try {
-                return new SimpleDateFormat("yyyy-MM-dd").parse(arg);
-            } catch (ParseException e) {
-                throw new RuntimeException("'" + arg + "' doesn't match yyyy-MM-dd", e);
             }
         }
     };

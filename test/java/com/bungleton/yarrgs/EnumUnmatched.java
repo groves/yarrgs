@@ -2,9 +2,8 @@ package com.bungleton.yarrgs;
 
 import java.util.List;
 
-public class AllUnparsed
+public class EnumUnmatched
 {
     @Unmatched
-    public List<String> extras;
-
+    public List<Injury> injuries;
 }
