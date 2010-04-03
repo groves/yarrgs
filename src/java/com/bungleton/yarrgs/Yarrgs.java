@@ -9,7 +9,7 @@ public class Yarrgs
         try {
             return parse(argsType, args);
         } catch (YarrgParseException e) {
-            System.err.println(e.getMessage());
+            System.err.println(e.getUsage() + "\n" + e.getMessage());
             System.exit(1);
             return null;
         }

@@ -12,11 +12,6 @@ public class SetOptionParser extends OptionParser
         this.placeholder = field.getName().toUpperCase();
     }
 
-    public Object parse (String arg)
-    {
-        return arg;
-    }
-
     @Override
     public String getBasic ()
     {

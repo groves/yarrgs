@@ -83,8 +83,9 @@ public class TestArgParser
             Yarrgs.parse(OneString.class, new String[] { "--help" });
             fail();
         } catch (YarrgParseException e) {
-            assertEquals("Usage: OneString [-i INJURY] \n" +
-                         "  -i INJURY, --injury INJURY Type of injury the pirate has\n", e.getMessage());
+            assertEquals("Usage: OneString [-i INJURY] ", e.getUsage());
+            assertEquals("  -i INJURY, --injury INJURY Type of injury the pirate has\n",
+                e.getMessage());
         }
     }
 }

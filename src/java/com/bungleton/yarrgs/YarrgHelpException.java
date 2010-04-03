@@ -2,8 +2,8 @@ package com.bungleton.yarrgs;
 
 public class YarrgHelpException extends YarrgParseException
 {
-    public YarrgHelpException (String message)
+    public YarrgHelpException (String usage, String detail)
     {
-        super(message);
+        super(usage, detail);
     }
 }

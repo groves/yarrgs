@@ -80,11 +80,11 @@ public class CLIParser
         List<String> unmatched = new ArrayList<String>();
         for (int ii = 0; ii < args.length; ii++) {
             if (args[ii].equals("-h") || args[ii].equals("--help")) {
-                throw new YarrgHelpException(getHelp(false));
+                throw new YarrgHelpException(getUsage(), getDetail());
             } else if (_options.containsKey(args[ii])) {
                 OptionParser parser = _options.get(args[ii]);
                 if (parser instanceof SetOptionParser) {
-                    setField(parser.field, ((SetOptionParser)parser).parse(args[++ii]));
+                    setField(parser.field, args[++ii]);
                 } else {
                     setField(parser.field, true);
                 }
@@ -98,37 +98,45 @@ public class CLIParser
         if (unparsed != null) {
             setField(unparsed.field, unmatched);
         } else if (!unmatched.isEmpty()) {
-            throw new YarrgParseException(getHelp(true) + unmatched
-                + " were given without a corresponding option");
+            throw new YarrgParseException(getUsage(),
+                unmatched + " were given without a corresponding option");
         }
     }
 
-    protected String getHelp (boolean oneLine)
+    protected String getUsage ()
     {
-        StringBuilder basic = new StringBuilder("Usage: ");
-        StringBuilder detail = new StringBuilder();
-        basic.append(_destination.getClass().getSimpleName()).append(' ');
+        StringBuilder usage = new StringBuilder("Usage: ");
+        usage.append(_destination.getClass().getSimpleName()).append(' ');
         if (!options.isEmpty()) {
-            basic.append('[');
+            usage.append('[');
             for (OptionParser option : options) {
-                basic.append(option.getBasic()).append('|');
-                detail.append(option.getDetail()).append('\n');
+                usage.append(option.getBasic()).append('|');
             }
-            basic.setLength(basic.length() - 1);
-            basic.append("] ");
+            usage.setLength(usage.length() - 1);
+            usage.append("] ");
         }
         for (PositionalParser pos : positonals) {
-            basic.append(pos.getBasic()).append(' ');
-            detail.append(pos.getDetail()).append('\n');
+            usage.append(pos.getBasic()).append(' ');
         }
         if (unparsed != null) {
-            basic.append(unparsed.getBasic());
-            if (!unparsed.getUsage().equals("")) {
-                detail.append(unparsed.getDetail()).append('\n');
-            }
+            usage.append(unparsed.getBasic());
         }
-        String usage = basic.append('\n').toString();
-        return oneLine ? usage : usage + detail;
+        return usage.toString();
+    }
+
+    protected String getDetail ()
+    {
+        StringBuilder help = new StringBuilder();
+        for (OptionParser option : options) {
+            help.append(option.getDetail()).append('\n');
+        }
+        for (PositionalParser pos : positonals) {
+            help.append(pos.getDetail()).append('\n');
+        }
+        if (unparsed != null && !unparsed.getUsage().equals("")) {
+            help.append(unparsed.getDetail()).append('\n');
+        }
+        return help.toString();
     }
 
     protected void setField (Field f, Object value)
