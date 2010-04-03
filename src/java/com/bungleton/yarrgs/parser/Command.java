@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.bungleton.yarrgs.Parser;
 import com.bungleton.yarrgs.Positional;
 import com.bungleton.yarrgs.Unmatched;
 import com.bungleton.yarrgs.YarrgConfigurationException;
@@ -20,7 +21,7 @@ public class Command
     public final List<PositionalArgument> positonals = new ArrayList<PositionalArgument>();
     public final UnmatchedArguments unmatched;
 
-    public Command (Object destination)
+    public Command (Object destination, Map<Class<?>, Parser<?>> parsers)
     {
         _destination = destination;
         Map<Integer, Field> positionals = new HashMap<Integer, Field>();
@@ -31,6 +32,7 @@ public class Command
             if (Modifier.isStatic(f.getModifiers())) {
                 continue;
             }
+            Parser<?> parser = parsers.get(f.getType());
             Positional pos = f.getAnnotation(Positional.class);
             if (pos != null) {
                 YarrgConfigurationException.unless(un == null, "'" + f
@@ -38,19 +40,18 @@ public class Command
                 Field existent = positionals.put(pos.position(), f);
                 YarrgConfigurationException.unless(existent == null, "Attempted to assign '" + f
                     + "' to the same position as '" + existent + "'");
-            } else if (OptionArgument.handles(f)) {
-                OptionArgument parser = OptionArgument.create(f);
-                options.add(parser);
-                _options.put(parser.shortArg, parser);
-                _options.put(parser.longArg, parser);
             } else if (un != null) {
                 YarrgConfigurationException.unless(f.getType().equals(List.class),
                     "'" + f + "' is @Unparsed but not a list");
                 YarrgConfigurationException.unless(unmatchedField == null,
                     "'" + f + "' and '" + unmatchedField + "' both have @Unparsed");
                 unmatchedField = f;
+            } else if (f.getType().equals(Boolean.TYPE)) {
+                addOption(new FlagOptionArgument(f));
+            } else if(parser != null) {
+                addOption(new ValueOptionArgument(f, parser));
             } else {
-                throw new YarrgConfigurationException("Field '" + f + "' with unknown type");
+                throw new YarrgConfigurationException("Field '" + f + "' with unhandled type");
             }
         }
 
@@ -73,6 +74,13 @@ public class Command
         unmatched = unmatchedField == null ? null : new UnmatchedArguments(unmatchedField);
     }
 
+    protected void addOption (OptionArgument parser)
+    {
+        options.add(parser);
+        _options.put(parser.shortArg, parser);
+        _options.put(parser.longArg, parser);
+    }
+
     public void parse (String[] args)
         throws YarrgParseException
     {
@@ -84,7 +92,7 @@ public class Command
             } else if (_options.containsKey(args[ii])) {
                 OptionArgument parser = _options.get(args[ii]);
                 if (parser instanceof ValueOptionArgument) {
-                    setField(parser.field, args[++ii]);
+                    setField(parser.field, parse(args[++ii], ((ValueOptionArgument)parser).parser));
                 } else {
                     setField(parser.field, true);
                 }
@@ -100,6 +108,16 @@ public class Command
         } else if (!unmatchedArgs.isEmpty()) {
             throw new YarrgParseException(getUsage(),
                 unmatchedArgs + " were given without a corresponding option");
+        }
+    }
+
+    protected Object parse (String arg, Parser<?> parser)
+        throws YarrgParseException
+    {
+        try {
+            return parser.parse(arg);
+        } catch (RuntimeException e) {
+            throw new YarrgParseException(getUsage(), e.getMessage(), e);
         }
     }
 

@@ -1,18 +1,16 @@
 package com.bungleton.yarrgs;
 
+import java.util.Calendar;
+import java.util.Date;
+
 import org.junit.Test;
 
-import static org.junit.Assert.fail;
-
 import static org.junit.Assert.assertEquals;
-
-import static org.junit.Assert.assertNull;
-
-import static org.junit.Assert.assertTrue;
-
 import static org.junit.Assert.assertFalse;
-
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TestArgParser
 {
@@ -86,6 +84,31 @@ public class TestArgParser
             assertEquals("Usage: OneString [-i INJURY] ", e.getUsage());
             assertEquals("  -i INJURY, --injury INJURY Type of injury the pirate has\n",
                 e.getMessage());
+        }
+    }
+
+    @Test
+    public void parseDate ()
+        throws YarrgParseException
+    {
+        Date parsed = Yarrgs.parse(OneDate.class, new String[] { "--start", "2010-04-01" }).start;
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(parsed);
+        assertEquals(2010, cal.get(Calendar.YEAR));
+        assertEquals(Calendar.APRIL, cal.get(Calendar.MONTH));
+        assertEquals(1, cal.get(Calendar.DAY_OF_MONTH));
+    }
+
+    @Test
+    public void parseMalformedDate ()
+        throws YarrgParseException
+    {
+        try {
+            Yarrgs.parse(OneDate.class, new String[] { "--start", "20100401" });
+            fail();
+        } catch (YarrgParseException ex) {
+            assertEquals("Usage: OneDate [-s START] \n\n'20100401' doesn't match yyyy-MM-dd",
+                ex.getExitMessage());
         }
     }
 }

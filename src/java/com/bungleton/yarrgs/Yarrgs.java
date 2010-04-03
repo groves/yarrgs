@@ -1,13 +1,21 @@
 package com.bungleton.yarrgs;
 
+import java.util.Map;
+
 import com.bungleton.yarrgs.parser.Command;
 
 public class Yarrgs
 {
     public static <T> T parseInMain (Class<T> argsType, String[] args)
     {
+        return parseInMain(argsType, args, Parsers.DEFAULT);
+    }
+
+    public static <T> T parseInMain (Class<T> argsType, String[] args,
+        Map<Class<?>, Parser<?>> parsers)
+    {
         try {
-            return parse(argsType, args);
+            return parse(argsType, args, parsers);
         } catch (YarrgParseException e) {
             System.err.println(e.getExitMessage());
             System.exit(1);
@@ -18,6 +26,13 @@ public class Yarrgs
     public static <T> T parse (Class<T> argsType, String[] args)
         throws YarrgParseException
     {
+        return parse(argsType, args, Parsers.DEFAULT);
+
+    }
+
+    public static <T> T parse (Class<T> argsType, String[] args, Map<Class<?>, Parser<?>> parsers)
+        throws YarrgParseException
+    {
         T t;
         try {
             t = argsType.newInstance();
@@ -25,7 +40,7 @@ public class Yarrgs
             throw new YarrgConfigurationException("'" + argsType
                 + "' must have a public no-arg constructor", e);
         }
-        new Command(t).parse(args);
+        new Command(t, parsers).parse(args);
         return t;
     }
 }
