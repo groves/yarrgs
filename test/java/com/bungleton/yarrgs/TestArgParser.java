@@ -56,11 +56,11 @@ public class TestArgParser
             Yarrgs.parse(OneRequiredPositionalOneOptionalPositional.class,
                 new String[] { "eyepatch" });
         assertEquals(result.injury, "eyepatch");
-        assertEquals(result.drink, "grog");
+        assertTrue(result.when.equals(new Date()) || result.when.before(new Date()));
         result = Yarrgs.parse(OneRequiredPositionalOneOptionalPositional.class,
-            new String[] { "pegleg", "rum" });
+            new String[] { "pegleg", "3000-11-01" });// Future pegleg!
         assertEquals(result.injury, "pegleg");
-        assertEquals(result.drink, "rum");
+        assertTrue(result.when.after(new Date()));
     }
 
     @Test

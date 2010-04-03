@@ -18,7 +18,7 @@ import com.bungleton.yarrgs.YarrgParseException;
 public class Command
 {
     public final List<OptionArgument> options = new ArrayList<OptionArgument>();
-    public final List<PositionalArgument> positonals = new ArrayList<PositionalArgument>();
+    public final List<PositionalArgument> positionals = new ArrayList<PositionalArgument>();
     public final UnmatchedArguments unmatched;
 
     public Command (Object destination, Map<Class<?>, Parser<?>> parsers)
@@ -34,7 +34,7 @@ public class Command
             }
             Parser<?> parser = parsers.get(f.getType());
             Positional pos = f.getAnnotation(Positional.class);
-            if (pos != null) {
+            if (pos != null && parser != null) {
                 YarrgConfigurationException.unless(un == null, "'" + f
                     + "' is @Unparsed and @Positional");
                 Field existent = positionals.put(pos.position(), f);
@@ -68,7 +68,7 @@ public class Command
             if (pos.optional() && firstOptionalPositional == null) {
                 firstOptionalPositional = f;
             }
-            _positional.add(f);
+            this.positionals.add(new PositionalArgument(f, parsers.get(f.getType())));
         }
 
         unmatched = unmatchedField == null ? null : new UnmatchedArguments(unmatchedField);
@@ -96,9 +96,9 @@ public class Command
                 } else {
                     setField(parser.field, true);
                 }
-            } else if(positionalsIdx < _positional.size()) {
-                Field posField = _positional.get(positionalsIdx++);
-                setField(posField, args[ii]);
+            } else if(positionalsIdx < positionals.size()) {
+                PositionalArgument pos = positionals.get(positionalsIdx++);
+                setField(pos.field, parse(args[ii], pos.parser));
             } else {
                 unmatchedArgs.add(args[ii]);
             }
@@ -133,7 +133,7 @@ public class Command
             usage.setLength(usage.length() - 1);
             usage.append("] ");
         }
-        for (PositionalArgument pos : positonals) {
+        for (PositionalArgument pos : positionals) {
             usage.append(pos.getBasic()).append(' ');
         }
         if (unmatched != null) {
@@ -148,7 +148,7 @@ public class Command
         for (OptionArgument option : options) {
             help.append(option.getDetail()).append('\n');
         }
-        for (PositionalArgument pos : positonals) {
+        for (PositionalArgument pos : positionals) {
             help.append(pos.getDetail()).append('\n');
         }
         if (unmatched != null && !unmatched.getUsage().equals("")) {
@@ -169,5 +169,4 @@ public class Command
 
     protected final Object _destination;
     protected final Map<String, OptionArgument> _options = new HashMap<String, OptionArgument>();
-    protected final List<Field> _positional = new ArrayList<Field>();
 }
