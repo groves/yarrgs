@@ -26,8 +26,21 @@ public class Command
         Class<?> parseType = destination.getClass();
         Field unmatchedField = null;
         for (Field f : parseType.getFields()) {
-            Unmatched un = f.getAnnotation(Unmatched.class);
             if (Modifier.isStatic(f.getModifiers())) {
+                continue;
+            }
+            Positional pos = f.getAnnotation(Positional.class);
+            if (f.getAnnotation(Unmatched.class) != null) {
+                YarrgConfigurationException.unless(pos == null, "'" + f
+                    + "' has @Unmatched and @Positional");
+                YarrgConfigurationException.unless(f.getType().equals(List.class),
+                    "'" + f + "' is @Unmatched but not a list");
+                YarrgConfigurationException.unless(unmatchedField == null,
+                    "'" + f + "' and '" + unmatchedField + "' both have @Unmatched");
+                unmatchedField = f;
+                continue;
+            } else if (f.getType().equals(Boolean.TYPE)) {
+                addOption(new FlagOptionArgument(f));
                 continue;
             }
             Parser<?> parser = null;
@@ -37,28 +50,16 @@ public class Command
                     break;
                 }
             }
-            Positional pos = f.getAnnotation(Positional.class);
+            YarrgConfigurationException.unless(parser != null, "Unhandled type: " + f);
             if (pos != null && parser != null) {
-                YarrgConfigurationException.unless(un == null, "'" + f
-                    + "' is @Unparsed and @Positional");
                 PositionalArgument existent =
                     positionals.put(pos.position(), new PositionalArgument(f, parser));
                 if (existent != null) {
                     throw new YarrgConfigurationException("Attempted to assign '" + f
                         + "' to the same position as '" + existent.field + "'");
                 }
-            } else if (un != null) {
-                YarrgConfigurationException.unless(f.getType().equals(List.class),
-                    "'" + f + "' is @Unparsed but not a list");
-                YarrgConfigurationException.unless(unmatchedField == null,
-                    "'" + f + "' and '" + unmatchedField + "' both have @Unparsed");
-                unmatchedField = f;
-            } else if (f.getType().equals(Boolean.TYPE)) {
-                addOption(new FlagOptionArgument(f));
-            } else if(parser != null) {
-                addOption(new ValueOptionArgument(f, parser));
             } else {
-                throw new YarrgConfigurationException("Unhandled type: " + f);
+                addOption(new ValueOptionArgument(f, parser));
             }
         }
 
