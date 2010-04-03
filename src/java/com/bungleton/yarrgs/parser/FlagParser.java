@@ -18,7 +18,7 @@ public class FlagParser extends OptionParser
     @Override
     public String getDetail ()
     {
-        return String.format("  %s ,%-10s %s", shortArg, longArg, getUsage());
+        return String.format("  %s, %-10s %s", shortArg, longArg, getUsage());
     }
 
 }
