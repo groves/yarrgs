@@ -33,7 +33,7 @@ public class Parsers
             try {
                 return new SimpleDateFormat("yyyy-MM-dd").parse(arg);
             } catch (ParseException e) {
-                throw new RuntimeException("'" + arg + "' doesn't match yyyy-MM-dd");
+                throw new RuntimeException("'" + arg + "' doesn't match yyyy-MM-dd", e);
             }
         }
     };
