@@ -23,7 +23,6 @@ public class PositionalParser extends ArgumentParser
     @Override
     public String getDetail ()
     {
-        // TODO Auto-generated method stub
-        return null;
+        return field.getName() + " " + getUsage();
     }
 }
