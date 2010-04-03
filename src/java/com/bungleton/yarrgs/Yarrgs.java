@@ -11,7 +11,7 @@ public class Yarrgs
         } catch (YarrgParseException e) {
             System.err.println(e.getUsage() + "\n" + e.getMessage());
             System.exit(1);
-            return null;
+            throw new IllegalStateException("Java continued past a System.exit call");
         }
     }
 
