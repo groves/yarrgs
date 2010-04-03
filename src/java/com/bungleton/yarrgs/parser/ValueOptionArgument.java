@@ -2,11 +2,11 @@ package com.bungleton.yarrgs.parser;
 
 import java.lang.reflect.Field;
 
-public class SetOptionParser extends OptionParser
+public class ValueOptionArgument extends OptionArgument
 {
     public final String placeholder;
 
-    public SetOptionParser (Field field)
+    public ValueOptionArgument (Field field)
     {
         super(field);
         this.placeholder = field.getName().toUpperCase();

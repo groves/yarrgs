@@ -4,11 +4,11 @@ import java.lang.reflect.Field;
 
 import com.bungleton.yarrgs.Positional;
 
-public class PositionalParser extends ArgumentParser
+public class PositionalArgument extends Argument
 {
     public final boolean optional;
 
-    public PositionalParser (Field field)
+    public PositionalArgument (Field field)
     {
         super(field);
         optional = field.getAnnotation(Positional.class).optional();

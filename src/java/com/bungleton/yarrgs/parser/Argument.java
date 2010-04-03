@@ -4,11 +4,11 @@ import java.lang.reflect.Field;
 
 import com.bungleton.yarrgs.Usage;
 
-public abstract class ArgumentParser
+public abstract class Argument
 {
     public final Field field;
 
-    public ArgumentParser (Field field)
+    public Argument (Field field)
     {
         this.field = field;
     }

@@ -2,9 +2,9 @@ package com.bungleton.yarrgs.parser;
 
 import java.lang.reflect.Field;
 
-public class UnparsedParser extends ArgumentParser
+public class FlagOptionArgument extends OptionArgument
 {
-    public UnparsedParser (Field field)
+    public FlagOptionArgument (Field field)
     {
         super(field);
     }
@@ -12,13 +12,13 @@ public class UnparsedParser extends ArgumentParser
     @Override
     public String getBasic ()
     {
-        return "[" + field.getName() + "...]";
+        return shortArg;
     }
 
     @Override
     public String getDetail ()
     {
-        return field.getName() + " " + getUsage();
+        return String.format("  %s, %-10s %s", shortArg, longArg, getUsage());
     }
 
 }
