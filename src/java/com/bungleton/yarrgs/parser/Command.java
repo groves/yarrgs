@@ -58,7 +58,7 @@ public class Command
             } else if(parser != null) {
                 addOption(new ValueOptionArgument(f, parser));
             } else {
-                throw new YarrgConfigurationException("Field '" + f + "' with unhandled type");
+                throw new YarrgConfigurationException("Unhandled type: " + f);
             }
         }
 

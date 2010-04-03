@@ -30,6 +30,30 @@ public class Parsers
         }
     };
 
+    public static final Parser<Object> ENUM = new Parser<Object>() {
+        @Override public boolean handles (Field f) {
+            return f.getType().isEnum();
+        }
+
+        @Override public Object parse (String arg, Field f) {
+            @SuppressWarnings("unchecked")
+            Class<? extends Enum> enumType = (Class<? extends Enum>)f.getType();
+            try {
+                @SuppressWarnings("unchecked")
+                Object val = Enum.valueOf(enumType, arg);
+                return val;
+            } catch (IllegalArgumentException ex) {
+                StringBuilder error = new StringBuilder("Expecting one of ");
+                for (Object option : f.getType().getEnumConstants()) {
+                    error.append(((Enum<?>)option).name()).append('|');
+                }
+                error.setLength(error.length() - 1);
+                error.append(", not '" + arg + "'");
+                throw new IllegalArgumentException(error.toString(), ex);
+            }
+        }
+    };
+
     public static final Parser<Date> DATE = new ClassParser<Date>(Date.class) {
         @Override public Date parse (String arg, Field f) {
             try {
@@ -46,6 +70,7 @@ public class Parsers
         builder.add(INT);
         builder.add(BYTE);
         builder.add(STRING);
+        builder.add(ENUM);
         builder.add(DATE);
         DEFAULT = Collections.unmodifiableList(builder);
     }

@@ -111,4 +111,18 @@ public class TestArgParser
                 ex.getExitMessage());
         }
     }
+
+    @Test
+    public void parseEnum ()
+        throws YarrgParseException
+    {
+        assertEquals(OneEnum.Injury.eyepatch,
+            Yarrgs.parse(OneEnum.class, new String[] { "-i", "eyepatch" }).injury);
+        try {
+            Yarrgs.parse(OneEnum.class, new String[] { "-i", "hoooook" });
+            fail();
+        } catch (YarrgParseException ex) {
+            assertEquals("Expecting one of pegleg|hook|eyepatch, not 'hoooook'", ex.getMessage());
+        }
+    }
 }
