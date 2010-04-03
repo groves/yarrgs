@@ -1,5 +1,7 @@
 package com.bungleton.yarrgs;
 
+import com.bungleton.yarrgs.parser.CLIParser;
+
 public class Yarrgs
 {
     public static <T> T parseInMain (Class<T> argsType, String[] args)
@@ -23,7 +25,7 @@ public class Yarrgs
             throw new YarrgConfigurationException("'" + argsType
                 + "' must have a public no-arg constructor", e);
         }
-        new ArgParser(t).parse(args);
+        new CLIParser(t).parse(args);
         return t;
     }
 }
