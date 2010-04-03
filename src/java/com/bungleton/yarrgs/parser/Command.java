@@ -17,9 +17,6 @@ import com.bungleton.yarrgs.YarrgParseException;
 
 public class Command
 {
-    public final List<OptionArgument> options = new ArrayList<OptionArgument>();
-    public final List<PositionalArgument> positionals = new ArrayList<PositionalArgument>();
-    public final UnmatchedArguments unmatched;
 
     public Command (Object destination, Map<Class<?>, Parser<?>> parsers)
     {
@@ -68,15 +65,15 @@ public class Command
             if (pos.optional() && firstOptionalPositional == null) {
                 firstOptionalPositional = f;
             }
-            this.positionals.add(new PositionalArgument(f, parsers.get(f.getType())));
+            _positionals.add(new PositionalArgument(f, parsers.get(f.getType())));
         }
 
-        unmatched = unmatchedField == null ? null : new UnmatchedArguments(unmatchedField);
+        _unmatched = unmatchedField == null ? null : new UnmatchedArguments(unmatchedField);
     }
 
     protected void addOption (OptionArgument parser)
     {
-        options.add(parser);
+        _orderedOptions.add(parser);
         _options.put(parser.shortArg, parser);
         _options.put(parser.longArg, parser);
     }
@@ -96,15 +93,15 @@ public class Command
                 } else {
                     setField(parser.field, true);
                 }
-            } else if(positionalsIdx < positionals.size()) {
-                PositionalArgument pos = positionals.get(positionalsIdx++);
+            } else if(positionalsIdx < _positionals.size()) {
+                PositionalArgument pos = _positionals.get(positionalsIdx++);
                 setField(pos.field, parse(args[ii], pos.parser));
             } else {
                 unmatchedArgs.add(args[ii]);
             }
         }
-        if (unmatched != null) {
-            setField(unmatched.field, unmatchedArgs);
+        if (_unmatched != null) {
+            setField(_unmatched.field, unmatchedArgs);
         } else if (!unmatchedArgs.isEmpty()) {
             throw new YarrgParseException(getUsage(),
                 unmatchedArgs + " were given without a corresponding option");
@@ -125,19 +122,19 @@ public class Command
     {
         StringBuilder usage = new StringBuilder("Usage: ");
         usage.append(_destination.getClass().getSimpleName()).append(' ');
-        if (!options.isEmpty()) {
+        if (!_orderedOptions.isEmpty()) {
             usage.append('[');
-            for (OptionArgument option : options) {
+            for (OptionArgument option : _orderedOptions) {
                 usage.append(option.getBasic()).append('|');
             }
             usage.setLength(usage.length() - 1);
             usage.append("] ");
         }
-        for (PositionalArgument pos : positionals) {
+        for (PositionalArgument pos : _positionals) {
             usage.append(pos.getBasic()).append(' ');
         }
-        if (unmatched != null) {
-            usage.append(unmatched.getBasic());
+        if (_unmatched != null) {
+            usage.append(_unmatched.getBasic());
         }
         return usage.toString();
     }
@@ -145,14 +142,14 @@ public class Command
     protected String getDetail ()
     {
         StringBuilder help = new StringBuilder();
-        for (OptionArgument option : options) {
+        for (OptionArgument option : _orderedOptions) {
             help.append(option.getDetail()).append('\n');
         }
-        for (PositionalArgument pos : positionals) {
+        for (PositionalArgument pos : _positionals) {
             help.append(pos.getDetail()).append('\n');
         }
-        if (unmatched != null && !unmatched.getUsage().equals("")) {
-            help.append(unmatched.getDetail()).append('\n');
+        if (_unmatched != null && !_unmatched.getUsage().equals("")) {
+            help.append(_unmatched.getDetail()).append('\n');
         }
         return help.toString();
     }
@@ -169,4 +166,7 @@ public class Command
 
     protected final Object _destination;
     protected final Map<String, OptionArgument> _options = new HashMap<String, OptionArgument>();
+    protected final List<OptionArgument> _orderedOptions = new ArrayList<OptionArgument>();
+    protected final List<PositionalArgument> _positionals = new ArrayList<PositionalArgument>();
+    protected final UnmatchedArguments _unmatched;
 }
