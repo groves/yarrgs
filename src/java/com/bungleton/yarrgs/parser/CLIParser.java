@@ -123,7 +123,9 @@ public class CLIParser
         }
         if (unparsed != null) {
             basic.append(unparsed.getBasic());
-            detail.append(unparsed.getDetail()).append('\n');
+            if (!unparsed.getUsage().equals("")) {
+                detail.append(unparsed.getDetail()).append('\n');
+            }
         }
         String usage = basic.append('\n').toString();
         return oneLine ? usage : usage + detail;
