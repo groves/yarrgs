@@ -18,10 +18,11 @@ import com.bungleton.yarrgs.YarrgParseException;
 public class Command
 {
 
-    public Command (Object destination, Map<Class<?>, Parser<?>> parsers)
+    public Command (Object destination, List<Parser<?>> parsers)
     {
         _destination = destination;
-        Map<Integer, Field> positionals = new HashMap<Integer, Field>();
+        _parsers = parsers;
+        Map<Integer, PositionalArgument> positionals = new HashMap<Integer, PositionalArgument>();
         Class<?> parseType = destination.getClass();
         Field unmatchedField = null;
         for (Field f : parseType.getFields()) {
@@ -29,14 +30,23 @@ public class Command
             if (Modifier.isStatic(f.getModifiers())) {
                 continue;
             }
-            Parser<?> parser = parsers.get(f.getType());
+            Parser<?> parser = null;
+            for (Parser<?> p : _parsers) {
+                if (p.handles(f)) {
+                    parser = p;
+                    break;
+                }
+            }
             Positional pos = f.getAnnotation(Positional.class);
             if (pos != null && parser != null) {
                 YarrgConfigurationException.unless(un == null, "'" + f
                     + "' is @Unparsed and @Positional");
-                Field existent = positionals.put(pos.position(), f);
-                YarrgConfigurationException.unless(existent == null, "Attempted to assign '" + f
-                    + "' to the same position as '" + existent + "'");
+                PositionalArgument existent =
+                    positionals.put(pos.position(), new PositionalArgument(f, parser));
+                if (existent != null) {
+                    throw new YarrgConfigurationException("Attempted to assign '" + f
+                        + "' to the same position as '" + existent.field + "'");
+                }
             } else if (un != null) {
                 YarrgConfigurationException.unless(f.getType().equals(List.class),
                     "'" + f + "' is @Unparsed but not a list");
@@ -56,16 +66,15 @@ public class Command
         for (int ii = 0; ii < positionals.size(); ii++) {
             YarrgConfigurationException.unless(positionals.containsKey(ii + 1),
                 "There were positionals past " + (ii + 1) + ", but none for it");
-            Field f = positionals.get(ii + 1);
-            Positional pos = f.getAnnotation(Positional.class);
-            YarrgConfigurationException.unless(pos.optional() || firstOptionalPositional == null,
-                "Non-optional positional argument '" + f
+            PositionalArgument p = positionals.get(ii + 1);
+            YarrgConfigurationException.unless(p.optional || firstOptionalPositional == null,
+                "Non-optional positional argument '" + p.field
                 + "' can't come after optional positional argument '"+ firstOptionalPositional
                 + "'");
-            if (pos.optional() && firstOptionalPositional == null) {
-                firstOptionalPositional = f;
+            if (p.optional && firstOptionalPositional == null) {
+                firstOptionalPositional = p.field;
             }
-            _positionals.add(new PositionalArgument(f, parsers.get(f.getType())));
+            _positionals.add(p);
         }
 
         _unmatched = unmatchedField == null ? null : new UnmatchedArguments(unmatchedField);
@@ -89,13 +98,13 @@ public class Command
             } else if (_options.containsKey(args[ii])) {
                 OptionArgument parser = _options.get(args[ii]);
                 if (parser instanceof ValueOptionArgument) {
-                    setField(parser.field, parse(args[++ii], ((ValueOptionArgument)parser).parser));
+                    parse(args[++ii], ((ValueOptionArgument)parser).parser, parser.field);
                 } else {
                     setField(parser.field, true);
                 }
             } else if(positionalsIdx < _positionals.size()) {
                 PositionalArgument pos = _positionals.get(positionalsIdx++);
-                setField(pos.field, parse(args[ii], pos.parser));
+                parse(args[ii], pos.parser, pos.field);
             } else {
                 unmatchedArgs.add(args[ii]);
             }
@@ -108,14 +117,16 @@ public class Command
         }
     }
 
-    protected Object parse (String arg, Parser<?> parser)
+    protected void parse (String arg, Parser<?> parser, Field f)
         throws YarrgParseException
     {
+        Object result;
         try {
-            return parser.parse(arg);
+            result = parser.parse(arg, f);
         } catch (RuntimeException e) {
             throw new YarrgParseException(getUsage(), e.getMessage(), e);
         }
+        setField(f, result);
     }
 
     protected String getUsage ()
@@ -164,6 +175,7 @@ public class Command
         }
     }
 
+    protected final List<Parser<?>> _parsers;
     protected final Object _destination;
     protected final Map<String, OptionArgument> _options = new HashMap<String, OptionArgument>();
     protected final List<OptionArgument> _orderedOptions = new ArrayList<OptionArgument>();

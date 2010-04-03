@@ -1,6 +1,6 @@
 package com.bungleton.yarrgs;
 
-import java.util.Map;
+import java.util.List;
 
 import com.bungleton.yarrgs.parser.Command;
 
@@ -11,8 +11,7 @@ public class Yarrgs
         return parseInMain(argsType, args, Parsers.DEFAULT);
     }
 
-    public static <T> T parseInMain (Class<T> argsType, String[] args,
-        Map<Class<?>, Parser<?>> parsers)
+    public static <T> T parseInMain (Class<T> argsType, String[] args, List<Parser<?>> parsers)
     {
         try {
             return parse(argsType, args, parsers);
@@ -30,7 +29,7 @@ public class Yarrgs
 
     }
 
-    public static <T> T parse (Class<T> argsType, String[] args, Map<Class<?>, Parser<?>> parsers)
+    public static <T> T parse (Class<T> argsType, String[] args, List<Parser<?>> parsers)
         throws YarrgParseException
     {
         T t;

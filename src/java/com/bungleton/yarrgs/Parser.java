@@ -1,6 +1,10 @@
 package com.bungleton.yarrgs;
 
+import java.lang.reflect.Field;
+
 public interface Parser<T>
 {
-    T parse(String arg);
+    boolean handles(Field f);
+
+    T parse(String arg, Field f);
 }
