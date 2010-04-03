@@ -9,7 +9,7 @@ public class Yarrgs
         try {
             return parse(argsType, args);
         } catch (YarrgParseException e) {
-            System.err.println(e.getUsage() + "\n" + e.getMessage());
+            System.err.println(e.getExitMessage());
             System.exit(1);
             throw new IllegalStateException("Java continued past a System.exit call");
         }

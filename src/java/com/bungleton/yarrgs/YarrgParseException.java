@@ -14,6 +14,11 @@ public class YarrgParseException extends Exception
         _usage = usage;
     }
 
+    public String getExitMessage ()
+    {
+        return _usage + "\n" + getMessage();
+    }
+
     public String getUsage()
     {
         return _usage;
