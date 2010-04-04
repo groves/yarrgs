@@ -137,20 +137,22 @@ public class Command<T>
                 unmatchedArgs.add(args[ii]);
             }
         }
-        if (_unmatched != null) {
-            List<Object> parsed = new ArrayList<Object>(unmatchedArgs.size());
-            for (String unparsed : unmatchedArgs) {
-                try {
-                    parsed.add(_unmatched.parser.parse(unparsed, _unmatched.parameterType));
-                } catch (RuntimeException e) {
-                    throw new YarrgParseException(getUsage(), e.getMessage(), e);
-                }
-            }
-            setField(t, _unmatched.field, parsed);
-        } else if (!unmatchedArgs.isEmpty()) {
-            throw new YarrgParseException(getUsage(),
-                unmatchedArgs + " were given without a corresponding option");
+        if (unmatchedArgs.isEmpty()) {
+            return t;
         }
+        if (_unmatched == null) {
+            throw new YarrgParseException(getUsage(), unmatchedArgs
+                + " were given without a corresponding option");
+        }
+        List<Object> parsed = new ArrayList<Object>(unmatchedArgs.size());
+        for (String unparsed : unmatchedArgs) {
+            try {
+                parsed.add(_unmatched.parser.parse(unparsed, _unmatched.parameterType));
+            } catch (RuntimeException e) {
+                throw new YarrgParseException(getUsage(), e.getMessage(), e);
+            }
+        }
+        setField(t, _unmatched.field, parsed);
         return t;
     }
 
@@ -173,7 +175,7 @@ public class Command<T>
         if (!_orderedOptions.isEmpty()) {
             usage.append('[');
             for (OptionArgument option : _orderedOptions) {
-                usage.append(option.getShortArgumentDescriptor()).append('|');
+                usage.append(option.getShortArgumentDescriptor()).append(',');
             }
             usage.setLength(usage.length() - 1);
             usage.append("] ");

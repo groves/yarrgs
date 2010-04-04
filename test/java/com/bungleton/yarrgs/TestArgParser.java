@@ -72,7 +72,7 @@ public class TestArgParser
     public void collectUnparsed ()
         throws YarrgParseException
     {
-        assertTrue(Yarrgs.parse(AllUnmatched.class, new String[0]).extras.isEmpty());
+        assertNull(Yarrgs.parse(AllUnmatched.class, new String[0]).extras);
         AllUnmatched unparsed = Yarrgs.parse(AllUnmatched.class, new String[] {"shiver", "timbers"});
         assertEquals(2, unparsed.extras.size());
         assertEquals("shiver", unparsed.extras.get(0));
@@ -86,7 +86,7 @@ public class TestArgParser
             Yarrgs.parse(OneString.class, new String[] { "--help" });
             fail();
         } catch (YarrgParseException e) {
-            assertEquals("Usage: OneString [-i INJURY|-h] ", e.getUsage());
+            assertEquals("Usage: OneString [-i INJURY,-h] ", e.getUsage());
             assertEquals("Options:\n" +
                 "  -i INJURY, --injury INJURY\n    Type of injury the pirate has\n" +
                 "  -h, --help         Print this help message and exit\n\n",
@@ -114,7 +114,7 @@ public class TestArgParser
             Yarrgs.parse(OneDate.class, new String[] { "--start", "20100401" });
             fail();
         } catch (YarrgParseException ex) {
-            assertEquals("Usage: OneDate [-s START|-h] \n'20100401' doesn't match yyyy-MM-dd",
+            assertEquals("Usage: OneDate [-s START,-h] \n'20100401' doesn't match yyyy-MM-dd",
                 ex.getExitMessage());
         }
     }
