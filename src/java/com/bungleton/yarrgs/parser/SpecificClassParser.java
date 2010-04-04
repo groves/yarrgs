@@ -1,4 +1,4 @@
-package com.bungleton.yarrgs;
+package com.bungleton.yarrgs.parser;
 
 public abstract class SpecificClassParser<T> extends BasicClassParser<T>
 {

@@ -1,4 +1,4 @@
-package com.bungleton.yarrgs;
+package com.bungleton.yarrgs.parser;
 
 import java.util.ArrayList;
 import java.util.Collections;

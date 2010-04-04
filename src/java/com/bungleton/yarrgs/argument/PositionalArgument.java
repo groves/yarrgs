@@ -2,8 +2,8 @@ package com.bungleton.yarrgs.argument;
 
 import java.lang.reflect.Field;
 
-import com.bungleton.yarrgs.Parser;
 import com.bungleton.yarrgs.Positional;
+import com.bungleton.yarrgs.parser.Parser;
 
 public class PositionalArgument extends Argument
 {

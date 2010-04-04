@@ -1,4 +1,4 @@
-package com.bungleton.yarrgs;
+package com.bungleton.yarrgs.parser;
 
 public interface ClassParser<T>
     extends Parser<T>

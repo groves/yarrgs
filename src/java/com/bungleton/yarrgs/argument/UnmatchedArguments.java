@@ -2,7 +2,7 @@ package com.bungleton.yarrgs.argument;
 
 import java.lang.reflect.Field;
 
-import com.bungleton.yarrgs.ClassParser;
+import com.bungleton.yarrgs.parser.ClassParser;
 
 public class UnmatchedArguments extends Argument
 {

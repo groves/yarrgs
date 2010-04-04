@@ -14,6 +14,8 @@ import com.bungleton.yarrgs.argument.OptionArgument;
 import com.bungleton.yarrgs.argument.PositionalArgument;
 import com.bungleton.yarrgs.argument.UnmatchedArguments;
 import com.bungleton.yarrgs.argument.ValueOptionArgument;
+import com.bungleton.yarrgs.parser.ClassParser;
+import com.bungleton.yarrgs.parser.Parser;
 
 public class Command<T>
 {
