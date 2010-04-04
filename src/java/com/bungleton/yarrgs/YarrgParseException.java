@@ -16,7 +16,7 @@ public class YarrgParseException extends Exception
 
     public String getExitMessage ()
     {
-        return _usage + "\n\n" + getMessage();
+        return _usage + "\n" + getMessage();
     }
 
     public String getUsage()

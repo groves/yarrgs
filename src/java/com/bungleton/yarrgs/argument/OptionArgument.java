@@ -8,8 +8,13 @@ public abstract class OptionArgument extends Argument
 
     public OptionArgument (Field field)
     {
+        this(field, "-" + field.getName().substring(0, 1), "--" + field.getName());
+    }
+
+    public OptionArgument (Field field, String shortArg, String longArg)
+    {
         super(field);
-        this.shortArg = "-" + field.getName().substring(0, 1);
-        this.longArg = "--" + field.getName();
+        this.shortArg = shortArg;
+        this.longArg = longArg;
     }
 }

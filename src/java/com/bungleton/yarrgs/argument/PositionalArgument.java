@@ -19,14 +19,8 @@ public class PositionalArgument extends Argument
     }
 
     @Override
-    public String getBasic ()
+    public String getShortArgumentDescriptor ()
     {
         return optional ? "[" + field.getName() + "]" : field.getName();
-    }
-
-    @Override
-    public String getDetail ()
-    {
-        return field.getName() + " " + getUsage();
     }
 }

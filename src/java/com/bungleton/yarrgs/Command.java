@@ -9,7 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.bungleton.yarrgs.argument.Argument;
 import com.bungleton.yarrgs.argument.FlagOptionArgument;
+import com.bungleton.yarrgs.argument.HelpArgument;
 import com.bungleton.yarrgs.argument.OptionArgument;
 import com.bungleton.yarrgs.argument.PositionalArgument;
 import com.bungleton.yarrgs.argument.UnmatchedArguments;
@@ -62,6 +64,7 @@ public class Command<T>
                 addOption(new ValueOptionArgument(f, parser));
             }
         }
+        addOption(new HelpArgument());
 
         Field firstOptionalPositional = null;
         for (int ii = 0; ii < positionals.size(); ii++) {
@@ -170,16 +173,17 @@ public class Command<T>
         if (!_orderedOptions.isEmpty()) {
             usage.append('[');
             for (OptionArgument option : _orderedOptions) {
-                usage.append(option.getBasic()).append('|');
+                usage.append(option.getShortArgumentDescriptor()).append('|');
             }
             usage.setLength(usage.length() - 1);
             usage.append("] ");
         }
+
         for (PositionalArgument pos : _positionals) {
-            usage.append(pos.getBasic()).append(' ');
+            usage.append(pos.getShortArgumentDescriptor()).append(' ');
         }
         if (_unmatched != null) {
-            usage.append(_unmatched.getBasic());
+            usage.append(_unmatched.getShortArgumentDescriptor());
         }
         return usage.toString();
     }
@@ -187,13 +191,26 @@ public class Command<T>
     protected String getDetail ()
     {
         StringBuilder help = new StringBuilder();
-        for (OptionArgument option : _orderedOptions) {
-            help.append(option.getDetail()).append('\n');
+        Usage commandUsage = _argumentHolder.getAnnotation(Usage.class);
+        if (commandUsage != null) {
+            Argument.wrap(help, commandUsage.value(), 2).append("\n\n");
         }
-        for (PositionalArgument pos : _positionals) {
-            help.append(pos.getDetail()).append('\n');
+        if (!_orderedOptions.isEmpty()) {
+            help.append("Options:\n");
+            for (OptionArgument option : _orderedOptions) {
+                help.append(option.getDetail()).append('\n');
+            }
+            help.append('\n');
+        }
+        if (!_positionals.isEmpty()) {
+            help.append("Positionals:\n");
+            for (PositionalArgument pos : _positionals) {
+                help.append(pos.getDetail()).append('\n');
+            }
+            help.append('\n');
         }
         if (_unmatched != null && !_unmatched.getUsage().equals("")) {
+            help.append("Unmatched:\n");
             help.append(_unmatched.getDetail()).append('\n');
         }
         return help.toString();

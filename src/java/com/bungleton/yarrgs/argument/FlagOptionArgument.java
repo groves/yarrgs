@@ -10,15 +10,14 @@ public class FlagOptionArgument extends OptionArgument
     }
 
     @Override
-    public String getBasic ()
+    public String getShortArgumentDescriptor ()
     {
         return shortArg;
     }
 
     @Override
-    public String getDetail ()
+    public String getFullArgumentDescriptor ()
     {
-        return String.format("  %s, %-10s %s", shortArg, longArg, getUsage());
+        return getShortArgumentDescriptor() + ", " + longArg;
     }
-
 }

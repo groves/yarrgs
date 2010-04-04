@@ -18,15 +18,8 @@ public class UnmatchedArguments extends Argument
     }
 
     @Override
-    public String getBasic ()
+    public String getShortArgumentDescriptor ()
     {
         return "[" + field.getName() + "...]";
     }
-
-    @Override
-    public String getDetail ()
-    {
-        return field.getName() + " " + getUsage();
-    }
-
 }

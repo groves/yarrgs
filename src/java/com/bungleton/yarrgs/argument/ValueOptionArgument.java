@@ -18,15 +18,14 @@ public class ValueOptionArgument extends OptionArgument
     }
 
     @Override
-    public String getBasic ()
+    public String getShortArgumentDescriptor ()
     {
         return shortArg + " " + placeholder;
     }
 
     @Override
-    public String getDetail ()
+    public String getFullArgumentDescriptor ()
     {
-        return String.format("  %s %s, %s %s %s", shortArg, placeholder, longArg, placeholder,
-            getUsage());
+        return getShortArgumentDescriptor() + ", " + longArg + " " + placeholder;
     }
 }

@@ -86,8 +86,10 @@ public class TestArgParser
             Yarrgs.parse(OneString.class, new String[] { "--help" });
             fail();
         } catch (YarrgParseException e) {
-            assertEquals("Usage: OneString [-i INJURY] ", e.getUsage());
-            assertEquals("  -i INJURY, --injury INJURY Type of injury the pirate has\n",
+            assertEquals("Usage: OneString [-i INJURY|-h] ", e.getUsage());
+            assertEquals("Options:\n" +
+                "  -i INJURY, --injury INJURY\n    Type of injury the pirate has\n" +
+                "  -h, --help         Print this help message and exit\n\n",
                 e.getMessage());
         }
     }
@@ -112,7 +114,7 @@ public class TestArgParser
             Yarrgs.parse(OneDate.class, new String[] { "--start", "20100401" });
             fail();
         } catch (YarrgParseException ex) {
-            assertEquals("Usage: OneDate [-s START] \n\n'20100401' doesn't match yyyy-MM-dd",
+            assertEquals("Usage: OneDate [-s START|-h] \n'20100401' doesn't match yyyy-MM-dd",
                 ex.getExitMessage());
         }
     }
