@@ -83,7 +83,7 @@ public class Command<T>
             return;
         }
         YarrgConfigurationException.unless(unmatchedField.getGenericType() instanceof ParameterizedType,
-            "'" + unmatchedField + "' must specify its type parameter");
+            "'" + unmatchedField + "' must specify a type parameter");
         Class<?> unmatchedComponentType =
             (Class<?>)((ParameterizedType)unmatchedField.getGenericType()).getActualTypeArguments()[0];
         for (Parser<?> potential : parsers) {
@@ -94,8 +94,8 @@ public class Command<T>
                 return;
             }
         }
-        throw new YarrgConfigurationException("No ClassParser for type in @Unmatched: "
-            + unmatchedField);
+        throw new YarrgConfigurationException("No ClassParser for type parameter '"
+            + unmatchedComponentType.getName() + "' on @Unmatched '" + unmatchedField + "'");
     }
 
     protected void addOption (OptionArgument parser)

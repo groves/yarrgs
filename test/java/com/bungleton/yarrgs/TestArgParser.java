@@ -1,10 +1,14 @@
 package com.bungleton.yarrgs;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import org.junit.Test;
+
+import com.bungleton.yarrgs.parser.Parser;
+import com.bungleton.yarrgs.parser.Parsers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -136,5 +140,19 @@ public class TestArgParser
         assertEquals(2, injuries.size());
         assertEquals(Injury.eyepatch, injuries.get(0));
         assertEquals(Injury.hook, injuries.get(1));
+    }
+
+    @Test(expected = YarrgConfigurationException.class)
+    public void parseMalformedUnmatched()
+    {
+        new Command<NonparameterizedUnmatched>(NonparameterizedUnmatched.class, Parsers.DEFAULT);
+    }
+
+    @Test(expected = YarrgConfigurationException.class)
+    public void parseMissingUnmatchedParser()
+    {
+        List<Parser<?>> parsers = new ArrayList<Parser<?>>();
+        parsers.add(Parsers.INT);
+        new Command<EnumUnmatched>(EnumUnmatched.class, parsers);
     }
 }
