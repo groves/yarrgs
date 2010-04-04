@@ -2,7 +2,6 @@ package com.bungleton.yarrgs;
 
 import java.util.List;
 
-import com.bungleton.yarrgs.parser.Command;
 
 public class Yarrgs
 {
@@ -32,14 +31,6 @@ public class Yarrgs
     public static <T> T parse (Class<T> argsType, String[] args, List<Parser<?>> parsers)
         throws YarrgParseException
     {
-        T t;
-        try {
-            t = argsType.newInstance();
-        } catch (Exception e) {
-            throw new YarrgConfigurationException("'" + argsType
-                + "' must have a public no-arg constructor", e);
-        }
-        new Command(t, parsers).parse(args);
-        return t;
+        return new Command<T>(argsType, parsers).parse(args);
     }
 }

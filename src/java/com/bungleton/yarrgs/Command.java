@@ -1,4 +1,4 @@
-package com.bungleton.yarrgs.parser;
+package com.bungleton.yarrgs;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -9,25 +9,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.bungleton.yarrgs.ClassParser;
-import com.bungleton.yarrgs.Parser;
-import com.bungleton.yarrgs.Positional;
-import com.bungleton.yarrgs.Unmatched;
-import com.bungleton.yarrgs.YarrgConfigurationException;
-import com.bungleton.yarrgs.YarrgHelpException;
-import com.bungleton.yarrgs.YarrgParseException;
+import com.bungleton.yarrgs.parser.FlagOptionArgument;
+import com.bungleton.yarrgs.parser.OptionArgument;
+import com.bungleton.yarrgs.parser.PositionalArgument;
+import com.bungleton.yarrgs.parser.UnmatchedArguments;
+import com.bungleton.yarrgs.parser.ValueOptionArgument;
 
-public class Command
+public class Command<T>
 {
-
-    public Command (Object destination, List<Parser<?>> parsers)
+    public Command (Class<T> argumentHolder, List<Parser<?>> parsers)
     {
-        _destination = destination;
+        _argumentHolder = argumentHolder;
         _parsers = parsers;
         Map<Integer, PositionalArgument> positionals = new HashMap<Integer, PositionalArgument>();
-        Class<?> parseType = destination.getClass();
         Field unmatchedField = null;
-        for (Field f : parseType.getFields()) {
+        for (Field f : argumentHolder.getFields()) {
             if (Modifier.isStatic(f.getModifiers())) {
                 continue;
             }
@@ -107,9 +103,16 @@ public class Command
         _options.put(parser.longArg, parser);
     }
 
-    public void parse (String[] args)
+    public T parse (String[] args)
         throws YarrgParseException
     {
+        T t;
+        try {
+            t = _argumentHolder.newInstance();
+        } catch (Exception e) {
+            throw new YarrgConfigurationException("'" + _argumentHolder
+                + "' must have a public no-arg constructor", e);
+        }
         int positionalsIdx = 0;
         List<String> unmatchedArgs = new ArrayList<String>();
         for (int ii = 0; ii < args.length; ii++) {
@@ -118,13 +121,13 @@ public class Command
             } else if (_options.containsKey(args[ii])) {
                 OptionArgument parser = _options.get(args[ii]);
                 if (parser instanceof ValueOptionArgument) {
-                    parse(args[++ii], ((ValueOptionArgument)parser).parser, parser.field);
+                    parse(t, args[++ii], ((ValueOptionArgument)parser).parser, parser.field);
                 } else {
-                    setField(parser.field, true);
+                    setField(t, parser.field, true);
                 }
             } else if(positionalsIdx < _positionals.size()) {
                 PositionalArgument pos = _positionals.get(positionalsIdx++);
-                parse(args[ii], pos.parser, pos.field);
+                parse(t, args[ii], pos.parser, pos.field);
             } else {
                 unmatchedArgs.add(args[ii]);
             }
@@ -138,14 +141,15 @@ public class Command
                     throw new YarrgParseException(getUsage(), e.getMessage(), e);
                 }
             }
-            setField(_unmatched.field, parsed);
+            setField(t, _unmatched.field, parsed);
         } else if (!unmatchedArgs.isEmpty()) {
             throw new YarrgParseException(getUsage(),
                 unmatchedArgs + " were given without a corresponding option");
         }
+        return t;
     }
 
-    protected void parse (String arg, Parser<?> parser, Field f)
+    protected void parse (T instance, String arg, Parser<?> parser, Field f)
         throws YarrgParseException
     {
         Object result;
@@ -154,13 +158,13 @@ public class Command
         } catch (RuntimeException e) {
             throw new YarrgParseException(getUsage(), e.getMessage(), e);
         }
-        setField(f, result);
+        setField(instance, f, result);
     }
 
     protected String getUsage ()
     {
         StringBuilder usage = new StringBuilder("Usage: ");
-        usage.append(_destination.getClass().getSimpleName()).append(' ');
+        usage.append(_argumentHolder.getSimpleName()).append(' ');
         if (!_orderedOptions.isEmpty()) {
             usage.append('[');
             for (OptionArgument option : _orderedOptions) {
@@ -193,10 +197,10 @@ public class Command
         return help.toString();
     }
 
-    protected void setField (Field f, Object value)
+    protected void setField (T instance, Field f, Object value)
     {
         try {
-            f.set(_destination, value);
+            f.set(instance, value);
         } catch (Exception e) {
             throw new YarrgConfigurationException("Expected to be able to set '" + f + "' to "
                 + value, e);
@@ -204,7 +208,7 @@ public class Command
     }
 
     protected final List<Parser<?>> _parsers;
-    protected final Object _destination;
+    protected final Class<T> _argumentHolder;
     protected final Map<String, OptionArgument> _options = new HashMap<String, OptionArgument>();
     protected final List<OptionArgument> _orderedOptions = new ArrayList<OptionArgument>();
     protected final List<PositionalArgument> _positionals = new ArrayList<PositionalArgument>();
