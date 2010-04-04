@@ -1,4 +1,4 @@
-package com.bungleton.yarrgs.parser;
+package com.bungleton.yarrgs.argument;
 
 import java.lang.reflect.Field;
 

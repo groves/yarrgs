@@ -9,11 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.bungleton.yarrgs.parser.FlagOptionArgument;
-import com.bungleton.yarrgs.parser.OptionArgument;
-import com.bungleton.yarrgs.parser.PositionalArgument;
-import com.bungleton.yarrgs.parser.UnmatchedArguments;
-import com.bungleton.yarrgs.parser.ValueOptionArgument;
+import com.bungleton.yarrgs.argument.FlagOptionArgument;
+import com.bungleton.yarrgs.argument.OptionArgument;
+import com.bungleton.yarrgs.argument.PositionalArgument;
+import com.bungleton.yarrgs.argument.UnmatchedArguments;
+import com.bungleton.yarrgs.argument.ValueOptionArgument;
 
 public class Command<T>
 {
