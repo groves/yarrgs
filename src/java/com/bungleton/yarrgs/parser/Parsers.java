@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -35,6 +36,12 @@ public class Parsers
             } catch (ParseException e) {
                 throw new RuntimeException("'" + arg + "' doesn't match yyyy-MM-dd", e);
             }
+        }
+    };
+
+    public static final Parser<File> FILE = new SpecificClassParser<File>(File.class) {
+        @Override public File parse (String arg, Class<?> f) {
+            return new File(arg);
         }
     };
 
@@ -70,6 +77,7 @@ public class Parsers
         builder.add(STRING);
         builder.add(ENUM);
         builder.add(DATE);
+        builder.add(FILE);
         DEFAULT = Collections.unmodifiableList(builder);
     }
 }
