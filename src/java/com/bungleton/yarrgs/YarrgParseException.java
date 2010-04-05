@@ -14,6 +14,14 @@ public class YarrgParseException extends Exception
         _usage = usage;
     }
 
+    public static void unless (boolean condition, String usage, String message)
+        throws YarrgParseException
+    {
+        if (!condition) {
+            throw new YarrgParseException(usage, message);
+        }
+    }
+
     public String getExitMessage ()
     {
         return _usage + "\n" + getMessage();
