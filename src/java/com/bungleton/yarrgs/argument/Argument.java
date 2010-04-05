@@ -61,7 +61,7 @@ public abstract class Argument
                 builder.append(' ');
             }
             builder.append(' ').append(usage).toString();
-        } else {
+        } else if (usage.length() > 0) {
             wrap(builder.append('\n'), usage, 4);
         }
         return builder.toString();
