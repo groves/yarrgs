@@ -1,11 +1,9 @@
 package com.bungleton.yarrgs;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Test;
-import com.bungleton.yarrgs.parser.Parser;
 import com.bungleton.yarrgs.parser.Parsers;
+
+import static org.junit.Assert.assertNull;
 
 import static org.junit.Assert.assertEquals;
 
@@ -16,15 +14,14 @@ public class TestCommand
     @Test(expected = YarrgConfigurationException.class)
     public void parseMalformedUnmatched ()
     {
-        new Command<NonparameterizedUnmatched>(NonparameterizedUnmatched.class, Parsers.DEFAULT);
+        new Command<NonparameterizedUnmatched>(NonparameterizedUnmatched.class,
+                Parsers.createFieldParserFactory());
     }
 
     @Test(expected = YarrgConfigurationException.class)
     public void parseMissingUnmatchedParser ()
     {
-        List<Parser<?>> parsers = new ArrayList<Parser<?>>();
-        parsers.add(Parsers.INT);
-        new Command<EnumUnmatched>(EnumUnmatched.class, parsers);
+        new Command<EnumUnmatched>(EnumUnmatched.class, Parsers.INT);
     }
 
     @Test
@@ -57,6 +54,7 @@ public class TestCommand
         Complete complete = parseWithComplete("-lvs", "2009-10-03", "filename");
         assertTrue(complete.verbose);
         assertTrue(complete.longFormat);
+        assertNull(complete.injuries);
     }
 
     @Test
@@ -80,9 +78,21 @@ public class TestCommand
         parseWithComplete("-ll", "filename");
     }
 
+    @Test
+    public void parseMultioption ()
+        throws YarrgParseException
+    {
+        Complete complete = parseWithComplete("-li", "hook", "-vi", "pegleg", "filename");
+        assertEquals(2, complete.injuries.size());
+        assertEquals(Injury.hook, complete.injuries.get(0));
+        assertEquals(Injury.pegleg, complete.injuries.get(1));
+        assertTrue(complete.verbose);
+    }
+
     protected static Complete parseWithComplete (String... args)
         throws YarrgParseException
     {
-        return new Command<Complete>(Complete.class, Parsers.DEFAULT).parse(args);
+        return new Command<Complete>(Complete.class,
+                Parsers.createFieldParserFactory()).parse(args);
     }
 }

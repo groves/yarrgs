@@ -2,14 +2,11 @@ package com.bungleton.yarrgs;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 
 import com.bungleton.yarrgs.argument.Argument;
 import com.bungleton.yarrgs.argument.FlagOptionArgument;
@@ -18,15 +15,15 @@ import com.bungleton.yarrgs.argument.OptionArgument;
 import com.bungleton.yarrgs.argument.PositionalArgument;
 import com.bungleton.yarrgs.argument.UnmatchedArguments;
 import com.bungleton.yarrgs.argument.ValueOptionArgument;
-import com.bungleton.yarrgs.parser.ClassParser;
 import com.bungleton.yarrgs.parser.Parser;
+import com.bungleton.yarrgs.parser.FieldParserFactory;
 
 public class Command<T>
 {
-    public Command (Class<T> argumentHolder, List<Parser<?>> parsers)
+    public Command (Class<T> argumentHolder, FieldParserFactory factory)
     {
         _argumentHolder = argumentHolder;
-        _parsers = parsers;
+        _factory = factory;
         Map<Integer, PositionalArgument> positionals = new HashMap<Integer, PositionalArgument>();
         Field unmatchedField = null;
         for (Field f : argumentHolder.getFields()) {
@@ -47,23 +44,16 @@ public class Command<T>
                 addOption(new FlagOptionArgument(f));
                 continue;
             }
-            Parser<?> parser = null;
-            for (Parser<?> p : _parsers) {
-                if (p.handles(f)) {
-                    parser = p;
-                    break;
-                }
-            }
-            YarrgConfigurationException.unless(parser != null, "Unhandled type: " + f);
-            if (pos != null && parser != null) {
+            YarrgConfigurationException.unless(factory.handles(f), "Unhandled type: " + f);
+            if (pos != null) {
                 PositionalArgument existent =
-                    positionals.put(pos.position(), new PositionalArgument(f, parser));
+                    positionals.put(pos.position(), new PositionalArgument(f));
                 if (existent != null) {
                     throw new YarrgConfigurationException("Attempted to assign '" + f
                         + "' to the same position as '" + existent.field + "'");
                 }
             } else {
-                addOption(new ValueOptionArgument(f, parser));
+                addOption(new ValueOptionArgument(f));
             }
         }
         addOption(new HelpArgument());
@@ -92,20 +82,9 @@ public class Command<T>
             _unmatched = null;
             return;
         }
-        YarrgConfigurationException.unless(unmatchedField.getGenericType() instanceof ParameterizedType,
-            "'" + unmatchedField + "' must specify a type parameter");
-        Class<?> unmatchedComponentType =
-            (Class<?>)((ParameterizedType)unmatchedField.getGenericType()).getActualTypeArguments()[0];
-        for (Parser<?> potential : parsers) {
-            if (potential instanceof ClassParser<?> &&
-                    ((ClassParser<?>)potential).handles(unmatchedComponentType)) {
-                _unmatched = new UnmatchedArguments(unmatchedField, (ClassParser<?>)potential,
-                    unmatchedComponentType);
-                return;
-            }
-        }
-        throw new YarrgConfigurationException("No ClassParser for type parameter '"
-            + unmatchedComponentType.getName() + "' on @Unmatched '" + unmatchedField + "'");
+        YarrgConfigurationException.unless(factory.handles(unmatchedField), "'" + unmatchedField
+            + "' must specify a type parameter");
+        _unmatched = new UnmatchedArguments(unmatchedField);
     }
 
     protected void addOption (OptionArgument parser)
@@ -127,52 +106,58 @@ public class Command<T>
         }
         int positionalsIdx = 0;
         String usage = getUsage();
-        List<String> unmatchedArgs = new ArrayList<String>();
-        Set<String> specified = new HashSet<String>();
+        Map<Argument, Parser<?>> parsers = new HashMap<Argument, Parser<?>>();
         for (int ii = 0; ii < args.length; ii++) {
             String next = ii + 1 == args.length ? null : args[ii + 1];
             if (args[ii].startsWith("--") && args[ii].length() > 2) {
-                if (handleOption(t, args[ii], next, _longOptions.get(args[ii]), specified)) {
+                if (handleOption(t, args[ii], next, _longOptions.get(args[ii]), parsers)) {
                     ii++;
                 }
             } else if (args[ii].startsWith("-") && args[ii].length() > 1) {
                 // Short options can be chained together off of a single -, but any with another
                 // short option following it doesn't have access to the next arg and must be flag
                 for (char shortArg : args[ii].substring(1, args[ii].length() - 1).toCharArray()) {
-                    handleOption(t, "-" + shortArg, null, _shortOptions.get(shortArg), specified);
+                    handleOption(t, "-" + shortArg, null, _shortOptions.get(shortArg), parsers);
                 }
                 // Let the final short option look at the next arg
                 char finalShort = args[ii].charAt(args[ii].length() - 1);
                 if (handleOption(t, "-" + finalShort, next, _shortOptions.get(finalShort),
-                    specified)) {
+                    parsers)) {
                     ii++;
                 }
             } else if(positionalsIdx < _positionals.size()) {
                 PositionalArgument pos = _positionals.get(positionalsIdx++);
-                parse(t, args[ii], pos.parser, pos.field);
+                parse(args[ii], createParser(pos, parsers));
             } else {
-                unmatchedArgs.add(args[ii]);
+                YarrgParseException.unless(_unmatched != null, usage, args[ii]
+                    + " was given without a corresponding option");
+                parse(args[ii], createParser(_unmatched, parsers));
             }
         }
         if (positionalsIdx < _firstOptionalPositionalIdx) {
             throw new YarrgParseException(usage, "Required argument '"
                 + _positionals.get(positionalsIdx).getShortArgumentDescriptor() + "' missing");
         }
-        if (unmatchedArgs.isEmpty()) {
-            return t;
-        }
-        YarrgParseException.unless(_unmatched != null, usage, unmatchedArgs
-                + " were given without a corresponding option");
-        List<Object> parsed = new ArrayList<Object>(unmatchedArgs.size());
-        for (String unparsed : unmatchedArgs) {
+        for (Entry<Argument, Parser<?>> entry : parsers.entrySet()) {
+            Object value = entry.getValue().getResult();
             try {
-                parsed.add(_unmatched.parser.parse(unparsed, _unmatched.parameterType));
-            } catch (RuntimeException e) {
-                throw new YarrgParseException(usage, e.getMessage(), e);
+                entry.getKey().field.set(t, value);
+            } catch (Exception e) {
+                throw new YarrgConfigurationException("Expected to be able to set '"
+                    + entry.getKey().field + "' to " + value, e);
             }
         }
-        setField(t, _unmatched.field, parsed);
         return t;
+    }
+
+    protected Parser<?> createParser (Argument arg, Map<Argument, Parser<?>> parsers)
+    {
+        Parser<?> parser = parsers.get(arg);
+        if (parser == null) {
+            parser = _factory.createParser(arg.field);
+            parsers.put(arg, parser);
+        }
+        return parser;
     }
 
     /**
@@ -181,23 +166,20 @@ public class Command<T>
      * @param nextArg - The argument following this one, or null if there isn't one.
      * @return if nextArg was consumed by handling this option.
      */
-    protected boolean handleOption (T t, String arg, String nextArg, OptionArgument parser,
-        Set<String> specified)
+    protected boolean handleOption (T t, String arg, String nextArg, OptionArgument handler,
+        Map<Argument, Parser<?>> parsers)
         throws YarrgParseException
     {
-        YarrgParseException.unless(parser != null, getUsage(), "No such option '" + arg + "'");
-        YarrgParseException.unless(specified.add(arg), getUsage(), "'" + arg
-            + "' specified multiple times");
-
-        if (parser instanceof ValueOptionArgument) {
+        YarrgParseException.unless(arg != null, getUsage(), "No such option '" + arg + "'");
+        if (handler instanceof ValueOptionArgument) {
             YarrgParseException.unless(nextArg != null, getUsage(), "'" + arg
                 + "' requires a value following it");
-            parse(t, nextArg, ((ValueOptionArgument)parser).parser, parser.field);
+            parse(nextArg, createParser(handler, parsers));
             return true;
-        } else if (parser instanceof HelpArgument) {
+        } else if (handler instanceof HelpArgument) {
             throw new YarrgHelpException(getUsage(), getDetail());
         } else {
-            setField(t, parser.field, true);
+            parse("true", createParser(handler, parsers));
             return false;
         }
     }
@@ -207,29 +189,13 @@ public class Command<T>
      * <code>parser</code> from <code>arg</code>. If <code>parser</code> throws a
      * RuntimeException, it's wrapped in a YarrgParseException and rethrown.
      */
-    protected void parse (T instance, String arg, Parser<?> parser, Field f)
+    protected void parse (String arg, Parser<?> parser)
         throws YarrgParseException
     {
-        Object result;
         try {
-            result = parser.parse(arg, f);
+            parser.add(arg);
         } catch (RuntimeException e) {
             throw new YarrgParseException(getUsage(), e.getMessage(), e);
-        }
-        setField(instance, f, result);
-    }
-
-    /**
-     * Sets <code>f</code> on <code>instance</code> to <code>value</code>.
-     * @throws YarrgConfigurationException if setting f throws an exception.
-     */
-    protected void setField (T instance, Field f, Object value)
-    {
-        try {
-            f.set(instance, value);
-        } catch (Exception e) {
-            throw new YarrgConfigurationException("Expected to be able to set '" + f + "' to "
-                + value, e);
         }
     }
 
@@ -283,7 +249,7 @@ public class Command<T>
         return help.toString();
     }
 
-    protected final List<Parser<?>> _parsers;
+    protected final FieldParserFactory _factory;
     protected final Class<T> _argumentHolder;
     protected final Map<String, OptionArgument> _longOptions =
         new HashMap<String, OptionArgument>();
