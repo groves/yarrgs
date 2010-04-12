@@ -82,7 +82,7 @@ public class TestCommand
     public void parseMultioption ()
         throws YarrgParseException
     {
-        Complete complete = parseWithComplete("-li", "hook", "-vi", "pegleg", "filename");
+        Complete complete = parseWithComplete("-lihook", "-vi", "pegleg", "filename");
         assertEquals(2, complete.injuries.size());
         assertEquals(Injury.hook, complete.injuries.get(0));
         assertEquals(Injury.pegleg, complete.injuries.get(1));
@@ -93,7 +93,7 @@ public class TestCommand
     public void parseMapoption ()
         throws YarrgParseException
     {
-        Complete complete = parseWithComplete("-ld", "captain=4", "-d", "swabbie=1", "filename");
+        Complete complete = parseWithComplete("-ldcaptain=4", "-d", "swabbie=1", "filename");
         assertEquals(2, complete.divisions.size());
         assertEquals(4, (int)complete.divisions.get("captain"));
         assertEquals(1, (int)complete.divisions.get("swabbie"));

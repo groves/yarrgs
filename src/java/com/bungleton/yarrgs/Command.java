@@ -107,7 +107,7 @@ public class Command<T>
         int positionalsIdx = 0;
         String usage = getUsage();
         Map<Argument, Parser<?>> parsers = new HashMap<Argument, Parser<?>>();
-        for (int ii = 0; ii < args.length; ii++) {
+        ARGS: for (int ii = 0; ii < args.length; ii++) {
             String next = ii + 1 == args.length ? null : args[ii + 1];
             if (args[ii].startsWith("--") && args[ii].length() > 2) {
                 if (handleOption(t, args[ii], next, _longOptions.get(args[ii]), parsers)) {
@@ -116,8 +116,12 @@ public class Command<T>
             } else if (args[ii].startsWith("-") && args[ii].length() > 1) {
                 // Short options can be chained together off of a single -, but any with another
                 // short option following it doesn't have access to the next arg and must be flag
-                for (char shortArg : args[ii].substring(1, args[ii].length() - 1).toCharArray()) {
-                    handleOption(t, "-" + shortArg, null, _shortOptions.get(shortArg), parsers);
+                char[] shorts = args[ii].substring(1, args[ii].length() - 1).toCharArray();
+                for (int jj = 0; jj < shorts.length; jj++) {
+                    if (handleOption(t, "-" + shorts[jj], args[ii].substring(2 + jj),
+                        _shortOptions.get(shorts[jj]), parsers)) {
+                        continue ARGS;
+                    }
                 }
                 // Let the final short option look at the next arg
                 char finalShort = args[ii].charAt(args[ii].length() - 1);

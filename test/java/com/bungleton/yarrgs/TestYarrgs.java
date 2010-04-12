@@ -125,7 +125,7 @@ public class TestYarrgs
         assertEquals(Injury.eyepatch,
             Yarrgs.parse(OneEnum.class, new String[] { "-i", "eyepatch" }).injury);
         try {
-            Yarrgs.parse(OneEnum.class, new String[] { "-i", "hoooook" });
+            Yarrgs.parse(OneEnum.class, new String[] { "-ihoooook" });
             fail();
         } catch (YarrgParseException ex) {
             assertEquals("Expecting one of pegleg|hook|eyepatch, not 'hoooook'", ex.getMessage());
