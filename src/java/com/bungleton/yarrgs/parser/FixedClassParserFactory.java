@@ -1,21 +1,21 @@
 package com.bungleton.yarrgs.parser;
 
-public abstract class FixedClassParserFactory<T> extends SpecificClassParserFactory
+public abstract class FixedClassParserFactory extends SpecificClassParserFactory
 {
-    public FixedClassParserFactory (Class<T> klass)
+    public FixedClassParserFactory (Class<?>...klasses)
     {
-        super(klass);
+        super(klasses);
     }
 
     @Override
-    public Parser<T> createParser (Class<?> klass)
+    public Parser<?> createParser (Class<?> klass)
     {
-        return new SingleArgParser<T>() {
-            @Override public T parse (String arg) {
+        return new SingleArgParser<Object>() {
+            @Override public Object parse (String arg) {
                 return FixedClassParserFactory.this.parse(arg);
             }
         };
     }
 
-    protected abstract T parse (String arg);
+    protected abstract Object parse (String arg);
 }

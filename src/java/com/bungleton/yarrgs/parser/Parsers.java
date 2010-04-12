@@ -18,7 +18,7 @@ public class Parsers
     public static FieldParserFactory createFieldParserFactory (ClassParserFactory classFactory)
     {
         return composeFieldParserFactory(composeFieldParserFactory(DEFAULTS),
-            new ListParserFactory(classFactory));
+            new ListParserFactory(classFactory), new MapParserFactory(classFactory));
     }
 
     public static ClassParserFactory composeClassParserFactory (
@@ -67,19 +67,22 @@ public class Parsers
         };
     }
 
-    public static final FieldObliviousParserFactory INT = new FixedClassParserFactory<Integer>(Integer.TYPE) {
+    public static final FieldObliviousParserFactory INT =
+        new FixedClassParserFactory(Integer.TYPE, Integer.class) {
         @Override public Integer parse (String arg) {
             return Integer.parseInt(arg);
         }
     };
 
-    public static final FieldObliviousParserFactory BYTE = new FixedClassParserFactory<Byte>(Byte.TYPE) {
+    public static final FieldObliviousParserFactory BYTE =
+        new FixedClassParserFactory(Byte.TYPE, Byte.class) {
         @Override public Byte parse (String arg) {
             return Byte.parseByte(arg);
         }
     };
 
-    public static final FieldObliviousParserFactory BOOLEAN = new FixedClassParserFactory<Boolean>(Boolean.TYPE) {
+    public static final FieldObliviousParserFactory BOOLEAN =
+        new FixedClassParserFactory(Boolean.TYPE, Boolean.class) {
         @Override public Boolean parse (String arg) {
             if (arg.equalsIgnoreCase("true")) {
                 return true;
@@ -92,13 +95,14 @@ public class Parsers
         }
     };
 
-    public static final FieldObliviousParserFactory STRING = new FixedClassParserFactory<String>(String.class) {
+    public static final FieldObliviousParserFactory STRING =
+        new FixedClassParserFactory(String.class) {
         @Override public String parse (String arg) {
             return arg;
         }
     };
 
-    public static final FieldObliviousParserFactory DATE = new FixedClassParserFactory<Date>(Date.class) {
+    public static final FieldObliviousParserFactory DATE = new FixedClassParserFactory(Date.class) {
         @Override public Date parse (String arg) {
             try {
                 return new SimpleDateFormat("yyyy-MM-dd").parse(arg);
@@ -108,7 +112,7 @@ public class Parsers
         }
     };
 
-    public static final FieldObliviousParserFactory FILE = new FixedClassParserFactory<File>(File.class) {
+    public static final FieldObliviousParserFactory FILE = new FixedClassParserFactory(File.class) {
         @Override public File parse (String arg) {
             return new File(arg);
         }

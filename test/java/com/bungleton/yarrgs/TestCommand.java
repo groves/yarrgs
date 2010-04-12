@@ -89,6 +89,24 @@ public class TestCommand
         assertTrue(complete.verbose);
     }
 
+    @Test
+    public void parseMapoption ()
+        throws YarrgParseException
+    {
+        Complete complete = parseWithComplete("-ld", "captain=4", "-d", "swabbie=1", "filename");
+        assertEquals(2, complete.divisions.size());
+        assertEquals(4, (int)complete.divisions.get("captain"));
+        assertEquals(1, (int)complete.divisions.get("swabbie"));
+        assertTrue(complete.longFormat);
+    }
+
+    @Test(expected = YarrgParseException.class)
+    public void parseMissingMapValue ()
+        throws YarrgParseException
+    {
+        parseWithComplete("-ld", "captain", "-d", "swabbie=1", "filename");
+    }
+
     protected static Complete parseWithComplete (String... args)
         throws YarrgParseException
     {

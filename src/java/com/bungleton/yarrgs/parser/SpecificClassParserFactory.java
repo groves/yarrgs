@@ -3,15 +3,20 @@ package com.bungleton.yarrgs.parser;
 public abstract class SpecificClassParserFactory
     extends FieldObliviousParserFactory
 {
-    public SpecificClassParserFactory (Class<?> klass)
+    public SpecificClassParserFactory (Class<?>...klasses)
     {
-        _class = klass;
+        _class = klasses;
     }
 
     public boolean handles (Class<?> klass)
     {
-        return klass.equals(_class);
+        for (Class<?> ourklass : _class) {
+            if (klass.equals(ourklass)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    protected final Class<?> _class;
+    protected final Class<?>[] _class;
 }
