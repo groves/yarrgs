@@ -107,6 +107,13 @@ public class TestCommand
         parseWithComplete("-ld", "captain", "-d", "swabbie=1", "filename");
     }
 
+    @Test(expected = YarrgParseException.class)
+    public void parseUnknownFlag ()
+        throws YarrgParseException
+    {
+        parseWithComplete("-q");
+    }
+
     protected static Complete parseWithComplete (String... args)
         throws YarrgParseException
     {

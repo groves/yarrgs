@@ -174,7 +174,7 @@ public class Command<T>
         Map<Argument, Parser<?>> parsers)
         throws YarrgParseException
     {
-        YarrgParseException.unless(arg != null, getUsage(), "No such option '" + arg + "'");
+        YarrgParseException.unless(handler != null, getUsage(), "No such option '" + arg + "'");
         if (handler instanceof ValueOptionArgument) {
             YarrgParseException.unless(nextArg != null, getUsage(), "'" + arg
                 + "' requires a value following it");
