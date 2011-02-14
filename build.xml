@@ -1,20 +1,19 @@
 <?xml version="1.0"?>
 <project name="yarrgs" default="compile" basedir=".">
-  <!-- project metadata -->
-  <property name="lib.name"         value="yarrgs"/>
-  <property name="doc.packages"     value="com.bungleton.yarrgs.*"/>
-  <property name="copyright.holder" value="Charlie Groves"/>
-
   <!-- various directories used when building things -->
   <property name="src.dir"     value="src/java"/>
   <property name="test.dir"     value="test/java"/>
   <property name="deploy.dir"  value="dist"/>
   <property name="src.classes.dir" value="${deploy.dir}/src-classes"/>
   <property name="test.classes.dir" value="${deploy.dir}/test-classes"/>
-  <property name="javadoc.dir" value="${deploy.dir}/docs"/>
+
+  <!-- bring in our standard build support -->
+  <property name="ooo-build.vers" value="1.25"/>
+  <ant antfile="bootstrap.xml"/>
+  <import file="${user.home}/.m2/ant-support/${ooo-build.vers}/build-support.xml"/>
 
   <!-- declare our classpath -->
-  <path id="classpath">
+  <path id="test.classpath">
     <pathelement location="${src.classes.dir}"/>
     <pathelement location="${test.classes.dir}"/>
     <pathelement location="lib/junit-4.4.jar"/>
@@ -22,8 +21,6 @@
 
   <!-- prepares the application directories -->
   <target name="prepare">
-    <tstamp><format property="year" pattern="yyyy" /></tstamp>
-    <mkdir dir="${deploy.dir}"/>
     <mkdir dir="${src.classes.dir}"/>
     <mkdir dir="${test.classes.dir}"/>
     <mkdir dir="${javadoc.dir}"/>
@@ -33,8 +30,6 @@
   <target name="clean" description="Cleans out build results.">
     <delete dir="${src.classes.dir}"/>
     <delete dir="${test.classes.dir}"/>
-    <delete dir="${deploy.dir}/docs"/>
-    <delete failonerror="false"><fileset dir="${deploy.dir}" includes="*.jar"/></delete>
   </target>
 
   <!-- wipes the entire build directory clean -->
@@ -43,41 +38,18 @@
   </target>
 
   <!-- build the java class files -->
-  <macrodef name="compilejava">
-      <attribute name="srcdir"/>
-      <attribute name="destdir"/>
-      <sequential>
-          <javac srcdir="@{srcdir}" destdir="@{destdir}" includeAntRuntime="false"
-              debug="on" optimize="${build.optimize}" source="1.5" target="1.5" encoding="utf-8">
-              <classpath refid="classpath"/>
-              <compilerarg value="-Xlint"/>
-              <compilerarg value="-Xlint:-serial"/>
-          </javac>
-      </sequential>
-  </macrodef>
   <target name="compile" depends="prepare" description="Compiles the code.">
-      <compilejava srcdir="${src.dir}" destdir="${src.classes.dir}"/>
-      <compilejava srcdir="${test.dir}" destdir="${test.classes.dir}"/>
-  </target>
-
-  <!-- build the javadoc documentation -->
-  <target name="javadoc" depends="prepare" description="Generates javadoc documentation.">
-    <javadoc windowtitle="${lib.name} API" doctitle="${lib.name} API"
-             destdir="${javadoc.dir}" additionalparam="-breakiterator">
-      <packageset dir="${src.dir}"/>
-      <bottom>Copyright &#169; 2010 ${copyright.holder}. All Rights Reserved.</bottom>
-      <classpath refid="classpath"/>
-      <link href="http://java.sun.com/j2se/1.5/docs/api/"/>
-    </javadoc>
+    <ooojavac srcdir="${src.dir}" destdir="${src.classes.dir}" classpathref="test.classpath"/>
+    <ooojavac srcdir="${test.dir}" destdir="${test.classes.dir}" classpathref="test.classpath"/>
   </target>
 
   <!-- a target for rebuilding everything -->
-  <target name="all" depends="clean,javadoc,test,dist"
+  <target name="all" depends="clean,test,dist"
       description="Cleans and rebuilds everything including documentation."/>
 
   <target name="test" depends="compile">
       <junit haltonfailure="yes">
-          <classpath refid="classpath"/>
+          <classpath refid="test.classpath"/>
           <formatter type="plain" usefile="false"/>
           <batchtest>
               <fileset dir="${test.dir}">
