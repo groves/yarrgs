@@ -21,7 +21,6 @@
   <target name="prepare">
     <mkdir dir="${src.classes.dir}"/>
     <mkdir dir="${test.classes.dir}"/>
-    <mkdir dir="${javadoc.dir}"/>
   </target>
 
   <target name="clean" description="Cleans out build results.">
