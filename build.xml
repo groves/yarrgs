@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="yarrgs" default="compile" basedir=".">
-  <property name="src.dir" location="src/java"/>
-  <property name="test.dir" location="test/java"/>
+  <property name="src.dir" location="src/main/java"/>
+  <property name="test.dir" location="src/test/java"/>
   <property name="deploy.dir" location="dist"/>
   <property name="src.classes.dir" location="${deploy.dir}/src-classes"/>
   <property name="test.classes.dir" location="${deploy.dir}/test-classes"/>
@@ -12,15 +12,16 @@
   <ant antfile="bootstrap.xml"/>
   <import file="${user.home}/.m2/ant-support/${ooo-build.vers}/build-support.xml"/>
 
-  <path id="test.classpath">
-    <pathelement location="${src.classes.dir}"/>
-    <pathelement location="${test.classes.dir}"/>
-    <pathelement location="lib/junit-4.4.jar"/>
-  </path>
-
-  <target name="prepare">
+  <target name="prepare" depends="-init-maven-ant,-init-contrib">
     <mkdir dir="${src.classes.dir}"/>
     <mkdir dir="${test.classes.dir}"/>
+    <mavendep pom="pom.xml"/>
+    <mavendep pom="pom.xml" id="test.pom.xml" scope="test"/>
+    <path id="test.classpath">
+      <path refid="test.pom.xml.path"/>
+      <pathelement location="${src.classes.dir}"/>
+      <pathelement location="${test.classes.dir}"/>
+    </path>
   </target>
 
   <target name="clean" description="Cleans out build results.">
@@ -33,7 +34,7 @@
   </target>
 
   <target name="compile" depends="prepare" description="Compiles the code.">
-    <ooojavac srcdir="${src.dir}" destdir="${src.classes.dir}" classpathref="test.classpath"/>
+    <ooojavac srcdir="${src.dir}" destdir="${src.classes.dir}" classpathref="pom.xml.path"/>
     <ooojavac srcdir="${test.dir}" destdir="${test.classes.dir}" classpathref="test.classpath"/>
   </target>
 
@@ -56,7 +57,7 @@
       <jar destfile="${jar.file}" basedir="${src.classes.dir}"/>
   </target>
 
-  <target name="maven-deploy" depends="dist,-init-maven-ant,-init-contrib"
+  <target name="maven-deploy" depends="dist"
       description="Deploys artifacts to a Maven repository.">
     <mavendeploy pom="pom.xml" file="${jar.file}" srcdir="${src.dir}"/>
   </target>
