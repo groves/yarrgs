@@ -1,49 +1,43 @@
 <?xml version="1.0"?>
 <project name="yarrgs" default="compile" basedir=".">
-  <!-- various directories used when building things -->
-  <property name="src.dir"     value="src/java"/>
-  <property name="test.dir"     value="test/java"/>
-  <property name="deploy.dir"  value="dist"/>
-  <property name="src.classes.dir" value="${deploy.dir}/src-classes"/>
-  <property name="test.classes.dir" value="${deploy.dir}/test-classes"/>
+  <property name="src.dir" location="src/java"/>
+  <property name="test.dir" location="test/java"/>
+  <property name="deploy.dir" location="dist"/>
+  <property name="src.classes.dir" location="${deploy.dir}/src-classes"/>
+  <property name="test.classes.dir" location="${deploy.dir}/test-classes"/>
+  <property name="jar.file" location="${deploy.dir}/${ant.project.name}.jar"/>
 
   <!-- bring in our standard build support -->
   <property name="ooo-build.vers" value="1.25"/>
   <ant antfile="bootstrap.xml"/>
   <import file="${user.home}/.m2/ant-support/${ooo-build.vers}/build-support.xml"/>
 
-  <!-- declare our classpath -->
   <path id="test.classpath">
     <pathelement location="${src.classes.dir}"/>
     <pathelement location="${test.classes.dir}"/>
     <pathelement location="lib/junit-4.4.jar"/>
   </path>
 
-  <!-- prepares the application directories -->
   <target name="prepare">
     <mkdir dir="${src.classes.dir}"/>
     <mkdir dir="${test.classes.dir}"/>
     <mkdir dir="${javadoc.dir}"/>
   </target>
 
-  <!-- cleans out the intermediate build files -->
   <target name="clean" description="Cleans out build results.">
     <delete dir="${src.classes.dir}"/>
     <delete dir="${test.classes.dir}"/>
   </target>
 
-  <!-- wipes the entire build directory clean -->
   <target name="distclean" description="Completely removes build result directory.">
     <delete dir="${deploy.dir}"/>
   </target>
 
-  <!-- build the java class files -->
   <target name="compile" depends="prepare" description="Compiles the code.">
     <ooojavac srcdir="${src.dir}" destdir="${src.classes.dir}" classpathref="test.classpath"/>
     <ooojavac srcdir="${test.dir}" destdir="${test.classes.dir}" classpathref="test.classpath"/>
   </target>
 
-  <!-- a target for rebuilding everything -->
   <target name="all" depends="clean,test,dist"
       description="Cleans and rebuilds everything including documentation."/>
 
@@ -59,8 +53,12 @@
       </junit>
   </target>
 
-  <!-- builds our distribution jar file -->
   <target name="dist" depends="compile" description="Compiles the code and builds our jar file.">
-      <jar destfile="${deploy.dir}/${lib.name}.jar" basedir="${src.classes.dir}"/>
+      <jar destfile="${jar.file}" basedir="${src.classes.dir}"/>
+  </target>
+
+  <target name="maven-deploy" depends="dist,-init-maven-ant,-init-contrib"
+      description="Deploys artifacts to a Maven repository.">
+    <mavendeploy pom="pom.xml" file="${jar.file}" srcdir="${src.dir}"/>
   </target>
 </project>
