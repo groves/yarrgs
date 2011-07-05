@@ -28,7 +28,8 @@ public class Command<T>
     {
         _argumentHolder = argumentHolder;
         _factory = factory;
-        Map<Integer, PositionalArgument> positionals = new HashMap<Integer, PositionalArgument>();
+        Map<Integer, PositionalArgument> posiPositionals = new HashMap<Integer, PositionalArgument>();
+        Map<Integer, PositionalArgument> negaPositionals = new HashMap<Integer, PositionalArgument>();
         Field unmatchedField = null;
         for (Field f : argumentHolder.getFields()) {
             if (Modifier.isStatic(f.getModifiers())) {
@@ -50,6 +51,8 @@ public class Command<T>
             }
             YarrgConfigurationException.unless(factory.handles(f), "Unhandled type: " + f);
             if (pos != null) {
+                Map<Integer, PositionalArgument> positionals =
+                        pos.value() < 0 ? negaPositionals : posiPositionals;
                 PositionalArgument existent =
                     positionals.put(pos.value(), new PositionalArgument(f));
                 if (existent != null) {
@@ -62,11 +65,16 @@ public class Command<T>
         }
         addOption(new HelpArgument());
 
-        for (int ii = 0; ii < positionals.size(); ii++) {
-            YarrgConfigurationException.unless(positionals.containsKey(ii + 1),
-                "There were positionals past " + (ii + 1) + ", but none for it");
-            PositionalArgument p = positionals.get(ii + 1);
-            _positionals.add(p);
+        for (int ii = 0; ii < posiPositionals.size(); ii++) {
+            YarrgConfigurationException.unless(posiPositionals.containsKey(ii),
+                "There were positionals past " + ii + ", but none for it");
+            _posiPositionals.add(posiPositionals.get(ii));
+        }
+
+        for (int ii = -negaPositionals.size(); ii < 0; ii++) {
+            YarrgConfigurationException.unless(negaPositionals.containsKey(ii),
+                "There were positionals past " + ii + ", but none for it");
+            _negaPositionals.add(negaPositionals.get(ii));
         }
 
         if (unmatchedField == null) {
@@ -95,9 +103,9 @@ public class Command<T>
             throw new YarrgConfigurationException("'" + _argumentHolder
                 + "' must have a public no-arg constructor", e);
         }
-        int positionalsIdx = 0;
         String usage = getUsage();
         Map<Argument, Parser<?>> parsers = new HashMap<Argument, Parser<?>>();
+        List<String> nonFlagged = new ArrayList<String>();
         ARGS: for (int ii = 0; ii < args.length; ii++) {
             String next = ii + 1 == args.length ? null : args[ii + 1];
             if (args[ii].startsWith("--") && args[ii].length() > 2) {
@@ -120,18 +128,27 @@ public class Command<T>
                     parsers)) {
                     ii++;
                 }
-            } else if(positionalsIdx < _positionals.size()) {
-                PositionalArgument pos = _positionals.get(positionalsIdx++);
-                parse(args[ii], createParser(pos, parsers));
             } else {
-                YarrgParseException.unless(_unmatched != null, usage, args[ii]
-                    + " was given without a corresponding option");
-                parse(args[ii], createParser(_unmatched, parsers));
+                nonFlagged.add(args[ii]);
             }
         }
-        if (positionalsIdx < _positionals.size()) {
-            throw new YarrgParseException(usage, "Required argument '"
-                + _positionals.get(positionalsIdx).getShortArgumentDescriptor() + "' missing");
+
+        int positionalsIdx = 0;
+        for (PositionalArgument arg : _posiPositionals) {
+            YarrgParseException.unless(nonFlagged.size() > positionalsIdx, usage,
+                "Required argument '" + arg.getShortArgumentDescriptor() + "' missing");
+            parse(nonFlagged.get(positionalsIdx++), createParser(arg, parsers));
+        }
+        if (nonFlagged.size() - positionalsIdx > _negaPositionals.size()) {
+            YarrgParseException.unless(_unmatched != null, usage, "Too many arguments given");
+            for (; positionalsIdx < nonFlagged.size() - _negaPositionals.size(); positionalsIdx++) {
+                parse(nonFlagged.get(positionalsIdx), createParser(_unmatched, parsers));
+            }
+        }
+        for (PositionalArgument arg : _negaPositionals) {
+            YarrgParseException.unless(nonFlagged.size() > positionalsIdx, usage,
+                "Required argument '" + arg.getShortArgumentDescriptor() + "' missing");
+            parse(nonFlagged.get(positionalsIdx++), createParser(arg, parsers));
         }
         for (Entry<Argument, Parser<?>> entry : parsers.entrySet()) {
             Object value = entry.getValue().getResult();
@@ -207,11 +224,14 @@ public class Command<T>
             usage.append("] ");
         }
 
-        for (PositionalArgument pos : _positionals) {
+        for (PositionalArgument pos : _posiPositionals) {
             usage.append(pos.getShortArgumentDescriptor()).append(' ');
         }
         if (_unmatched != null) {
-            usage.append(_unmatched.getShortArgumentDescriptor());
+            usage.append(_unmatched.getShortArgumentDescriptor()).append(' ');
+        }
+        for (PositionalArgument pos : _negaPositionals) {
+            usage.append(pos.getShortArgumentDescriptor()).append(' ');
         }
         return usage.toString();
     }
@@ -230,9 +250,12 @@ public class Command<T>
             }
             help.append('\n');
         }
-        if (!_positionals.isEmpty()) {
+        if (!_posiPositionals.isEmpty() || !_negaPositionals.isEmpty()) {
             help.append("Positionals:\n");
-            for (PositionalArgument pos : _positionals) {
+            for (PositionalArgument pos : _posiPositionals) {
+                help.append(pos.getDetail()).append('\n');
+            }
+            for (PositionalArgument pos : _negaPositionals) {
                 help.append(pos.getDetail()).append('\n');
             }
             help.append('\n');
@@ -251,6 +274,7 @@ public class Command<T>
     protected final Map<Character, OptionArgument> _shortOptions =
         new HashMap<Character, OptionArgument>();
     protected final List<OptionArgument> _orderedOptions = new ArrayList<OptionArgument>();
-    protected final List<PositionalArgument> _positionals = new ArrayList<PositionalArgument>();
+    protected final List<PositionalArgument> _posiPositionals = new ArrayList<PositionalArgument>();
+    protected final List<PositionalArgument> _negaPositionals = new ArrayList<PositionalArgument>();
     protected final UnmatchedArguments _unmatched;
 }

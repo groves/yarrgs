@@ -127,4 +127,50 @@ public class TestYarrgs
         assertEquals(Injury.eyepatch, injuries.get(0));
         assertEquals(Injury.hook, injuries.get(1));
     }
+
+    @Test
+    public void parseLastPositional ()
+        throws YarrgParseException
+    {
+        LastPositional lp = Yarrgs.parse(LastPositional.class, new String[] {"2010-04-01", "pegleg"});
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(lp.time);
+        assertEquals(2010, cal.get(Calendar.YEAR));
+        assertEquals(Calendar.APRIL, cal.get(Calendar.MONTH));
+        assertEquals(1, cal.get(Calendar.DAY_OF_MONTH));
+        assertEquals(Injury.pegleg, lp.injury);
+    }
+
+    @Test
+    public void parseLastPositionalWithUnmatched ()
+        throws YarrgParseException
+    {
+        LastPositional lp = Yarrgs.parse(LastPositional.class, new String[] {"2010-04-01", "Charlie", "Chelsea", "pegleg"});
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(lp.time);
+        assertEquals(2010, cal.get(Calendar.YEAR));
+        assertEquals(Calendar.APRIL, cal.get(Calendar.MONTH));
+        assertEquals(1, cal.get(Calendar.DAY_OF_MONTH));
+        assertEquals(Injury.pegleg, lp.injury);
+        assertEquals(2, lp.names.size());
+    }
+
+    @Test
+    public void parseMissingLastPositional ()
+        throws YarrgParseException
+    {
+        try {
+            Yarrgs.parse(LastPositional.class, new String[] {"hook"});
+            fail();
+        } catch (YarrgParseException ex) {
+            assertEquals("'hook' doesn't match yyyy-MM-dd", ex.getMessage());
+        }
+    }
+
+    @Test(expected=YarrgParseException.class)
+    public void parseBadLastPositional ()
+        throws YarrgParseException
+    {
+        Yarrgs.parse(LastPositional.class, new String[] {"2010-04-01", "Charlie"});
+    }
 }

@@ -2,6 +2,6 @@ package com.bungleton.yarrgs;
 
 public class OnePositional
 {
-    @Positional(1)
+    @Positional(0)
     public String injury;
 }
