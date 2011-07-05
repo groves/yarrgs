@@ -6,13 +6,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-
 import com.bungleton.yarrgs.Positional;
 import com.bungleton.yarrgs.Unmatched;
 import com.bungleton.yarrgs.Usage;
 import com.bungleton.yarrgs.YarrgConfigurationException;
-import com.bungleton.yarrgs.YarrgHelpException;
 import com.bungleton.yarrgs.YarrgParseException;
 import com.bungleton.yarrgs.argument.Argument;
 import com.bungleton.yarrgs.argument.FlagOptionArgument;
@@ -103,112 +100,8 @@ public class Command<T>
             throw new YarrgConfigurationException("'" + _argumentHolder
                 + "' must have a public no-arg constructor", e);
         }
-        String usage = getUsage();
-        Map<Argument, Parser<?>> parsers = new HashMap<Argument, Parser<?>>();
-        List<String> nonFlagged = new ArrayList<String>();
-        ARGS: for (int ii = 0; ii < args.length; ii++) {
-            String next = ii + 1 == args.length ? null : args[ii + 1];
-            if (args[ii].startsWith("--") && args[ii].length() > 2) {
-                if (handleOption(t, args[ii], next, _longOptions.get(args[ii]), parsers)) {
-                    ii++;
-                }
-            } else if (args[ii].startsWith("-") && args[ii].length() > 1) {
-                // Short options can be chained together off of a single -, but any with another
-                // short option following it doesn't have access to the next arg and must be flag
-                char[] shorts = args[ii].substring(1, args[ii].length() - 1).toCharArray();
-                for (int jj = 0; jj < shorts.length; jj++) {
-                    if (handleOption(t, "-" + shorts[jj], args[ii].substring(2 + jj),
-                        _shortOptions.get(shorts[jj]), parsers)) {
-                        continue ARGS;
-                    }
-                }
-                // Let the final short option look at the next arg
-                char finalShort = args[ii].charAt(args[ii].length() - 1);
-                if (handleOption(t, "-" + finalShort, next, _shortOptions.get(finalShort),
-                    parsers)) {
-                    ii++;
-                }
-            } else {
-                nonFlagged.add(args[ii]);
-            }
-        }
-
-        int positionalsIdx = 0;
-        for (PositionalArgument arg : _posiPositionals) {
-            YarrgParseException.unless(nonFlagged.size() > positionalsIdx, usage,
-                "Required argument '" + arg.getShortArgumentDescriptor() + "' missing");
-            parse(nonFlagged.get(positionalsIdx++), createParser(arg, parsers));
-        }
-        if (nonFlagged.size() - positionalsIdx > _negaPositionals.size()) {
-            YarrgParseException.unless(_unmatched != null, usage, "Too many arguments given");
-            for (; positionalsIdx < nonFlagged.size() - _negaPositionals.size(); positionalsIdx++) {
-                parse(nonFlagged.get(positionalsIdx), createParser(_unmatched, parsers));
-            }
-        }
-        for (PositionalArgument arg : _negaPositionals) {
-            YarrgParseException.unless(nonFlagged.size() > positionalsIdx, usage,
-                "Required argument '" + arg.getShortArgumentDescriptor() + "' missing");
-            parse(nonFlagged.get(positionalsIdx++), createParser(arg, parsers));
-        }
-        for (Entry<Argument, Parser<?>> entry : parsers.entrySet()) {
-            Object value = entry.getValue().getResult();
-            try {
-                entry.getKey().field.set(t, value);
-            } catch (Exception e) {
-                throw new YarrgConfigurationException("Expected to be able to set '"
-                    + entry.getKey().field + "' to " + value, e);
-            }
-        }
+        new ParseRunner<T>(args, t, this);
         return t;
-    }
-
-    protected Parser<?> createParser (Argument arg, Map<Argument, Parser<?>> parsers)
-    {
-        Parser<?> parser = parsers.get(arg);
-        if (parser == null) {
-            parser = _factory.createParser(arg.field);
-            parsers.put(arg, parser);
-        }
-        return parser;
-    }
-
-    /**
-     * Assigns a value inside t for the given OptionArgument extracted by arg.
-     *
-     * @param nextArg - The argument following this one, or null if there isn't one.
-     * @return if nextArg was consumed by handling this option.
-     */
-    protected boolean handleOption (T t, String arg, String nextArg, OptionArgument handler,
-        Map<Argument, Parser<?>> parsers)
-        throws YarrgParseException
-    {
-        YarrgParseException.unless(handler != null, getUsage(), "No such option '" + arg + "'");
-        if (handler instanceof ValueOptionArgument) {
-            YarrgParseException.unless(nextArg != null, getUsage(), "'" + arg
-                + "' requires a value following it");
-            parse(nextArg, createParser(handler, parsers));
-            return true;
-        } else if (handler instanceof HelpArgument) {
-            throw new YarrgHelpException(getUsage(), getDetail());
-        } else {
-            parse("true", createParser(handler, parsers));
-            return false;
-        }
-    }
-
-    /**
-     * Sets the <code>f</code> on <code>instance</code> to the value extracted by
-     * <code>parser</code> from <code>arg</code>. If <code>parser</code> throws a
-     * RuntimeException, it's wrapped in a YarrgParseException and rethrown.
-     */
-    protected void parse (String arg, Parser<?> parser)
-        throws YarrgParseException
-    {
-        try {
-            parser.add(arg);
-        } catch (RuntimeException e) {
-            throw new YarrgParseException(getUsage(), e.getMessage(), e);
-        }
     }
 
     protected String getUsage ()
