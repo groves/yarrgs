@@ -1,4 +1,4 @@
-package com.bungleton.yarrgs;
+package com.bungleton.yarrgs.parser;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -8,6 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.bungleton.yarrgs.Positional;
+import com.bungleton.yarrgs.Unmatched;
+import com.bungleton.yarrgs.Usage;
+import com.bungleton.yarrgs.YarrgConfigurationException;
+import com.bungleton.yarrgs.YarrgHelpException;
+import com.bungleton.yarrgs.YarrgParseException;
 import com.bungleton.yarrgs.argument.Argument;
 import com.bungleton.yarrgs.argument.FlagOptionArgument;
 import com.bungleton.yarrgs.argument.HelpArgument;
@@ -15,8 +21,6 @@ import com.bungleton.yarrgs.argument.OptionArgument;
 import com.bungleton.yarrgs.argument.PositionalArgument;
 import com.bungleton.yarrgs.argument.UnmatchedArguments;
 import com.bungleton.yarrgs.argument.ValueOptionArgument;
-import com.bungleton.yarrgs.parser.Parser;
-import com.bungleton.yarrgs.parser.FieldParserFactory;
 
 public class Command<T>
 {

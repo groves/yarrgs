@@ -1,6 +1,8 @@
 package com.bungleton.yarrgs;
 
 import org.junit.Test;
+
+import com.bungleton.yarrgs.parser.Command;
 import com.bungleton.yarrgs.parser.Parsers;
 
 import static org.junit.Assert.assertNull;

@@ -1,8 +1,8 @@
 package com.bungleton.yarrgs;
 
+import com.bungleton.yarrgs.parser.Command;
 import com.bungleton.yarrgs.parser.FieldParserFactory;
 import com.bungleton.yarrgs.parser.Parsers;
-
 
 public class Yarrgs
 {
