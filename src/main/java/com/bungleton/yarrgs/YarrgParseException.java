@@ -1,5 +1,9 @@
 package com.bungleton.yarrgs;
 
+/**
+ * Thrown when a user passes in an invalid value for an argument, doesn't specify a required
+ * argument, and so on. The reason for the error is in {@link #getMessage()}.
+ */
 public class YarrgParseException extends Exception
 {
     public YarrgParseException (String usage, String message)
@@ -14,11 +18,18 @@ public class YarrgParseException extends Exception
         _usage = usage;
     }
 
+    /**
+     * Returns the usage for the command and the error message, suitable for printing on a command
+     * failing.
+     */
     public String getExitMessage ()
     {
         return _usage + "\n" + getMessage();
     }
 
+    /**
+     * Returns the usage for the command.
+     */
     public String getUsage()
     {
         return _usage;

@@ -9,7 +9,10 @@ import java.text.SimpleDateFormat;
 
 public class Parsers
 {
-
+    /**
+     * Creates a <code>FieldParserFactory</code> that can handle ints, bytes, booleans, Strings,
+     * Dates, Files, subclasses of Enum, and Lists and Maps of those types.
+     */
     public static FieldParserFactory createFieldParserFactory ()
     {
         return createFieldParserFactory(composeClassParserFactory(DEFAULTS));

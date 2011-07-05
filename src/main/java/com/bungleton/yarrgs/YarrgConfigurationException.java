@@ -1,5 +1,8 @@
 package com.bungleton.yarrgs;
 
+/**
+ * Thrown when a argument class is misconfigured eg having two options with the same flag.
+ */
 public class YarrgConfigurationException extends RuntimeException
 {
     public YarrgConfigurationException (String msg)
