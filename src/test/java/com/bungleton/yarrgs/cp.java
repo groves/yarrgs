@@ -16,9 +16,9 @@ public class cp
 
     public static void main (String[] args)
     {
-        cp cp = Yarrgs.parseInMain(cp.class, args);
-        System.out.println("Recursive: " + cp.recursive);
-        System.out.println("Source files: " + cp.sourceFiles);
-        System.out.println("Dest: " + cp.destination);
+        cp copyArgs = Yarrgs.parseInMain(cp.class, args);
+        System.out.println("Recursive: " + copyArgs.recursive);
+        System.out.println("Source files: " + copyArgs.sourceFiles);
+        System.out.println("Dest: " + copyArgs.destination);
     }
 }

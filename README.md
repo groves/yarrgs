@@ -4,12 +4,12 @@ its fields and annotations.
 Features
 ===========
 
-  * Converts and validates int, boolean, Enum, String, Date, File arguments. It also converts
+  * Converts and validates int, boolean, Enum, String, Date, and File arguments. It also converts
     Lists and Maps of any of the validated fields.
   * Allows arguments to required in a fixed position.
   * Collects unmatched arguments into a List of a validated type.
   * Needs minimal configuration and setup.
-  * Generates a usage string and argument description from the argument class.
+  * Generates and displays usage and help messages from the argument class automatically.
 
 Usage
 =====
@@ -27,10 +27,10 @@ Yarrgs is so simple a pirate could use it. First, write a class describing the a
         public File destination;
     }
 
-This class emulates a basic version of the Unix cp command. Every public field on it superclasses is
-assumed to be an argument. Fields without `@Positional` and `@Unmatched` are optional. They're
-specified with a flag eg `-r` or `--recursive` for the `recursive` field above. Flags are always the
-first letter of the field for the short option and the full field for the long option.
+This class emulates a basic version of the Unix cp command. Every public field on it is assumed to
+be an argument. Fields without `@Positional` and `@Unmatched` are optional. They're specified with
+a flag eg `-r` or `--recursive` for the `recursive` field above. Flags are always the first letter
+of the field for the short option and the full field for the long option.
 
 If a field has a `@Positonal` annotation, that means it's a required argument in a particular
 position on the command line. `@Positional(0)`, like on the `sourceFiles` field, means the first
@@ -51,15 +51,25 @@ a class with a main running the command:
 
     public static void main (String[] args) {
         cp copyArgs = Yarrgs.parseInMain(cp.class, args);
+        System.out.println("Recursive: " + copyArgs.recursive);
+        System.out.println("Source files: " + copyArgs.sourceFiles);
+        System.out.println("Dest: " + copyArgs.destination);
+
     }
 
-If the user supplied the required arguments to the class, `copyArgs` will be an instance of cp with
-its fields filled in from the arguments eg `cp sourceFile1 sourceFile2 dest` will produce a `cp`
-with recursive set to false, Files containing `sourceFile1` and `sourceFile2` in `sourceFiles` and
-a File containing `dest` in `destination`.
+The above main just prints out what's parsed by the class:
 
-However, if the correct arguments aren't specified, a help message is printed and `System.exit(1)`
-is called. Example:
+    prompt$ cp README.md build.xml src
+    Recursive: false
+    Source files: [README.md, build.xml]
+    Dest: src
+
+Since `-r` wasn't specified, `recursive` is left at its default value, `false`. This is how default
+values can be given for options. If nothing is specified for an option, Yarrgs leaves that field
+alone.
+
+If the correct arguments aren't specified to `parseInMain`, a help message is printed and
+`System.exit(1)` is called:
 
     prompt$ cp README.md
     Usage: cp [-r,-h] sourceFiles [sourceFiles...] destination
