@@ -179,7 +179,7 @@ public class TestYarrgs
     public void parseMissingSource ()
         throws YarrgParseException
     {
-        cp copy = Yarrgs.parse(cp.class, new String[] {"dest"});
+        Yarrgs.parse(cp.class, new String[] {"dest"});
     }
 
     @Test
