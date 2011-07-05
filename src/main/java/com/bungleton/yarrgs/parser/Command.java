@@ -34,14 +34,11 @@ public class Command<T>
             }
             Positional pos = f.getAnnotation(Positional.class);
             if (f.getAnnotation(Unmatched.class) != null) {
-                YarrgConfigurationException.unless(pos == null, "'" + f
-                    + "' has @Unmatched and @Positional");
                 YarrgConfigurationException.unless(f.getType().equals(List.class),
                     "'" + f + "' is @Unmatched but not a List");
                 YarrgConfigurationException.unless(unmatchedField == null,
                     "'" + f + "' and '" + unmatchedField + "' both have @Unmatched");
                 unmatchedField = f;
-                continue;
             } else if (f.getType().equals(Boolean.TYPE)) {
                 addOption(new FlagOptionArgument(f));
                 continue;

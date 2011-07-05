@@ -1,5 +1,6 @@
 package com.bungleton.yarrgs;
 
+import java.io.File;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -167,10 +168,29 @@ public class TestYarrgs
         }
     }
 
-    @Test(expected=YarrgParseException.class)
+    @Test(expected = YarrgParseException.class)
     public void parseBadLastPositional ()
         throws YarrgParseException
     {
-        Yarrgs.parse(LastPositional.class, new String[] {"2010-04-01", "Charlie"});
+        Yarrgs.parse(LastPositional.class, new String[] { "2010-04-01", "Charlie" });
+    }
+
+    @Test(expected = YarrgParseException.class)
+    public void parseMissingSource ()
+        throws YarrgParseException
+    {
+        cp copy = Yarrgs.parse(cp.class, new String[] {"dest"});
+    }
+
+    @Test
+    public void parseMultipleSourceCp ()
+        throws YarrgParseException
+    {
+        cp copy = Yarrgs.parse(cp.class, new String[] {"source1", "source2", "dest"});
+        assertEquals(2, copy.sourceFiles.size());
+        assertEquals(new File("source1"), copy.sourceFiles.get(0));
+        assertEquals(new File("source2"), copy.sourceFiles.get(1));
+        assertEquals(new File("dest"), copy.destination);
+        assertEquals(false, copy.recursive);
     }
 }

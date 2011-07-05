@@ -1,5 +1,6 @@
 package com.bungleton.yarrgs.parser;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -71,13 +72,13 @@ public class ParseRunner<T>
                 "Required argument '" + arg.getShortArgumentDescriptor() + "' missing");
             parse(nonFlagged.get(positionalsIdx++), arg);
         }
-        for (Entry<Argument, Parser<?>> entry : parsers.entrySet()) {
+        for (Entry<Field, Parser<?>> entry : parsers.entrySet()) {
             Object value = entry.getValue().getResult();
             try {
-                entry.getKey().field.set(instance, value);
+                entry.getKey().set(instance, value);
             } catch (Exception e) {
                 throw new YarrgConfigurationException("Expected to be able to set '"
-                    + entry.getKey().field + "' to " + value, e);
+                    + entry.getKey() + "' to " + value, e);
             }
         }
     }
@@ -110,10 +111,10 @@ public class ParseRunner<T>
     protected void parse (String arg, Argument argDesc)
         throws YarrgParseException
     {
-        Parser<?> parser = parsers.get(argDesc);
+        Parser<?> parser = parsers.get(argDesc.field);
         if (parser == null) {
             parser = _cmd._factory.createParser(argDesc.field);
-            parsers.put(argDesc, parser);
+            parsers.put(argDesc.field, parser);
         }
         try {
             parser.add(arg);
@@ -132,5 +133,5 @@ public class ParseRunner<T>
 
     protected final String _usage, _detail;
     protected final Command<T> _cmd;
-    protected final Map<Argument, Parser<?>> parsers = new HashMap<Argument, Parser<?>>();;
+    protected final Map<Field, Parser<?>> parsers = new HashMap<Field, Parser<?>>();
 }
