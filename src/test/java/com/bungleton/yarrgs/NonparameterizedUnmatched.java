@@ -4,6 +4,6 @@ import java.util.List;
 
 public class NonparameterizedUnmatched
 {
-    @Unmatched @SuppressWarnings("unchecked")
+    @Unmatched @SuppressWarnings({ "rawtypes" })
     public List boom;
 }

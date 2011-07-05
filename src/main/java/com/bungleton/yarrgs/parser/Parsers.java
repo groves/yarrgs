@@ -126,7 +126,7 @@ public class Parsers
         @Override public Parser<?> createParser (final Class<?> klass) {
             return new SingleArgParser<Object>() {
                 @Override public Object parse (String arg) {
-                    @SuppressWarnings("unchecked")
+                    @SuppressWarnings({ "unchecked", "rawtypes" })
                     Class<? extends Enum> enumType = (Class<? extends Enum>)klass;
                     try {
                         @SuppressWarnings("unchecked")
