@@ -54,7 +54,6 @@ a class with a main running the command:
         System.out.println("Recursive: " + copyArgs.recursive);
         System.out.println("Source files: " + copyArgs.sourceFiles);
         System.out.println("Dest: " + copyArgs.destination);
-
     }
 
 The above main just prints out what's parsed by the class:
