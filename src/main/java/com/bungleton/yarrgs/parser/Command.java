@@ -51,7 +51,7 @@ public class Command<T>
             YarrgConfigurationException.unless(factory.handles(f), "Unhandled type: " + f);
             if (pos != null) {
                 PositionalArgument existent =
-                    positionals.put(pos.position(), new PositionalArgument(f));
+                    positionals.put(pos.value(), new PositionalArgument(f));
                 if (existent != null) {
                     throw new YarrgConfigurationException("Attempted to assign '" + f
                         + "' to the same position as '" + existent.field + "'");
@@ -62,24 +62,11 @@ public class Command<T>
         }
         addOption(new HelpArgument());
 
-        Field firstOptionalPositional = null;
         for (int ii = 0; ii < positionals.size(); ii++) {
             YarrgConfigurationException.unless(positionals.containsKey(ii + 1),
                 "There were positionals past " + (ii + 1) + ", but none for it");
             PositionalArgument p = positionals.get(ii + 1);
-            YarrgConfigurationException.unless(p.optional || firstOptionalPositional == null,
-                "Non-optional positional argument '" + p.field
-                + "' can't come after optional positional argument '"+ firstOptionalPositional
-                + "'");
-            if (p.optional && firstOptionalPositional == null) {
-                firstOptionalPositional = p.field;
-            }
             _positionals.add(p);
-        }
-        if (firstOptionalPositional == null) {
-            _firstOptionalPositionalIdx = _positionals.size();
-        } else {
-            _firstOptionalPositionalIdx = _positionals.indexOf(firstOptionalPositional);
         }
 
         if (unmatchedField == null) {
@@ -142,7 +129,7 @@ public class Command<T>
                 parse(args[ii], createParser(_unmatched, parsers));
             }
         }
-        if (positionalsIdx < _firstOptionalPositionalIdx) {
+        if (positionalsIdx < _positionals.size()) {
             throw new YarrgParseException(usage, "Required argument '"
                 + _positionals.get(positionalsIdx).getShortArgumentDescriptor() + "' missing");
         }
@@ -265,6 +252,5 @@ public class Command<T>
         new HashMap<Character, OptionArgument>();
     protected final List<OptionArgument> _orderedOptions = new ArrayList<OptionArgument>();
     protected final List<PositionalArgument> _positionals = new ArrayList<PositionalArgument>();
-    protected final int _firstOptionalPositionalIdx;
     protected final UnmatchedArguments _unmatched;
 }

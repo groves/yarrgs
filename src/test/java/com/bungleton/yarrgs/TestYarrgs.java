@@ -53,21 +53,6 @@ public class TestYarrgs
     }
 
     @Test
-    public void parseOptionalPositonal ()
-        throws YarrgParseException
-    {
-        OneRequiredPositionalOneOptionalPositional result =
-            Yarrgs.parse(OneRequiredPositionalOneOptionalPositional.class,
-                new String[] { "eyepatch" });
-        assertEquals(result.injury, "eyepatch");
-        assertTrue(result.when.equals(new Date()) || result.when.before(new Date()));
-        result = Yarrgs.parse(OneRequiredPositionalOneOptionalPositional.class,
-            new String[] { "pegleg", "3000-11-01" });// Future pegleg!
-        assertEquals(result.injury, "pegleg");
-        assertTrue(result.when.after(new Date()));
-    }
-
-    @Test
     public void collectUnparsed ()
         throws YarrgParseException
     {

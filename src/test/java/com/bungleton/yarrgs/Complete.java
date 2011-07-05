@@ -16,6 +16,6 @@ public class Complete
 
     public Map<String, Integer> divisions;
 
-    @Positional
+    @Positional(1)
     public String file;
 }

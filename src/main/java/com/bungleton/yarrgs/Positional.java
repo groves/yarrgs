@@ -8,7 +8,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Positional {
-    int position() default 1;
-
-    boolean optional() default false;
+    int value();
 }
