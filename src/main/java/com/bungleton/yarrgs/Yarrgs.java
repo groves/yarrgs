@@ -9,10 +9,13 @@ import com.bungleton.yarrgs.parser.FieldParserFactory;
 import com.bungleton.yarrgs.parser.Parsers;
 
 /**
- * Main entry point for parsing args.
+ * Main entry point for parsing args. Call {@link #parseInMain} to parse arguments in your main
+ * method.
  */
 public class Yarrgs
 {
+    private Yarrgs() {}// not instantiable
+
     /**
      * Parses <code>args</code> into an instance of <code>argsType</code> using
      * {@link Parsers#createFieldParserFactory()}. Calls <code>System.exit(1)</code> if the user

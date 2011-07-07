@@ -12,9 +12,7 @@ import java.lang.annotation.Target;
 /**
  * Collects any non-flagged arguments not taken by a {@code Positional} field. This must be added
  * to a {@code List} field to allow it to collect multiple items. There can be only one
- * <code>@Unmatched</code> in a class.
- *
- * @see {@link Positional} - for how combining these annotations work.
+ * <code>@Unmatched</code> in a class.<p>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
