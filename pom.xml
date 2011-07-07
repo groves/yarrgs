@@ -4,7 +4,7 @@
   <groupId>com.bungleton</groupId>
   <artifactId>yarrgs</artifactId>
   <packaging>jar</packaging>
-  <version>0.1</version>
+  <version>0.2-SNAPSHOT</version>
   <name>yarrgs</name>
   <description>Java command line argument parsing with a hint of a sea breeze</description>
   <url>http://github.com/groves/yarrgs/</url>
