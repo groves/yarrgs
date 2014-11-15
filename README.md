@@ -6,7 +6,7 @@ Features
 
   * Converts and validates int, boolean, Enum, String, Date, and File arguments. It also converts
     Lists and Maps of any of the validated fields.
-  * Allows arguments to required in a fixed position.
+  * Allows arguments to be required in a fixed position.
   * Collects unmatched arguments into a List of a validated type.
   * Needs minimal configuration and setup.
   * Generates and displays usage and help messages from the argument class automatically.
@@ -32,7 +32,7 @@ be an argument. Fields without `@Positional` and `@Unmatched` are optional. They
 a flag eg `-r` or `--recursive` for the `recursive` field above. Flags are always the first letter
 of the field for the short option and the full field for the long option.
 
-If a field has a `@Positonal` annotation, that means it's a required argument in a particular
+If a field has a `@Positional` annotation, that means it's a required argument in a particular
 position on the command line. `@Positional(0)`, like on the `sourceFiles` field, means the first
 non-optional field is used for it. `@Positional(1)` would come after that field.
 
